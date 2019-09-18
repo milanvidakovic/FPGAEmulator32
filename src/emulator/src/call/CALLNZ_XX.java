@@ -14,6 +14,8 @@ public class CALLNZ_XX extends CALL_XX {
 	public void exec(CpuContext ctx) {
 		if ((ctx.f.val & 1) == 0) {
 			super.exec(ctx);
+		} else {
+			ctx.pc.val += 6;
 		}
 	}
 }

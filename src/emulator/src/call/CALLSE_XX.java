@@ -14,6 +14,8 @@ public class CALLSE_XX extends CALL_XX {
 	public void exec(CpuContext ctx) {
 		if (((ctx.f.val & 0x8) == 0) || ((ctx.f.val & 0x1) == 1)) {
 			super.exec(ctx);
+		} else {
+			ctx.pc.val += 6;
 		}
 	}
 }
