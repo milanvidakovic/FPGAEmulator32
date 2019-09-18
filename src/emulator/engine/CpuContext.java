@@ -130,6 +130,8 @@ public class CpuContext {
 		case 128:
 			if (value == 1)
 				engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_320_240);
+			else if (value == 2)
+				engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_640_480);
 			else
 				engine.main.fbViewer.setMode(FBViewer.TEXT_MODE);
 			break;

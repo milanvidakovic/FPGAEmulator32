@@ -32,6 +32,7 @@ public class FBViewer extends JFrame {
 	private static final long serialVersionUID = -5500314457803056242L;
 	public static final int TEXT_MODE = 0;
 	public static final int GRAPHICS_MODE_320_240 = 1;
+	public static final int GRAPHICS_MODE_640_480 = 2;
 	protected static final int SPRITE_COUNT = 3;
 	protected static final int SPRITE_DEF_START = 64;
 
@@ -549,8 +550,100 @@ public class FBViewer extends JFrame {
 					System.out.println("(" + (pixel.left + 3) + ", " + (pixel.top) + "): " + p4);
 				}
 			}
+		} else if (this.mode == GRAPHICS_MODE_640_480) {
+			if (addr >= Engine.VIDEO_OFFS && addr < (Engine.VIDEO_OFFS + (640 * 480) / 8)) {
+				Color p1, p2, p3, p4, p5, p6, p7, p8;
+				Color p9, p10, p11, p12, p13, p14, p15, p16;
+System.out.println("CONTENT: " + content);				
+				p1 = getColor2(content & 0x8000);
+				p2 = getColor2(content & 0x4000);
+				p3 = getColor2(content & 0x2000);
+				p4 = getColor2(content & 0x1000);
+				p5 = getColor2(content & 0x0800);
+				p6 = getColor2(content & 0x0400);
+				p7 = getColor2(content & 0x0200);
+				p8 = getColor2(content & 0x0100);
+				p9 = getColor2(content & 0x0080);
+				p10 = getColor2(content & 0x0040);
+				p11 = getColor2(content & 0x0020);
+				p12 = getColor2(content & 0x0010);
+				p13 = getColor2(content & 0x0008);
+				p14 = getColor2(content & 0x0004);
+				p15 = getColor2(content & 0x0002);
+				p16 = getColor2(content &  1);
+				Insets pixel = getCoordinate(addr);
+
+				Graphics2D g2 = (Graphics2D) getGraphics();
+				// draw on the actual screen
+				drawPixels2(g2, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, pixel);
+				// draw in the memory so the paint method can redraw everything
+				drawPixels2(gr, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, pixel);
+
+				if (EmulatorMain.DEBUG) {
+					System.out.println("(" + (pixel.left + 0) + ", " + (pixel.top) + "): " + p1);
+					System.out.println("(" + (pixel.left + 1) + ", " + (pixel.top) + "): " + p2);
+					System.out.println("(" + (pixel.left + 2) + ", " + (pixel.top) + "): " + p3);
+					System.out.println("(" + (pixel.left + 3) + ", " + (pixel.top) + "): " + p4);
+					System.out.println("(" + (pixel.left + 4) + ", " + (pixel.top) + "): " + p5);
+					System.out.println("(" + (pixel.left + 5) + ", " + (pixel.top) + "): " + p6);
+					System.out.println("(" + (pixel.left + 6) + ", " + (pixel.top) + "): " + p7);
+					System.out.println("(" + (pixel.left + 7) + ", " + (pixel.top) + "): " + p8);
+					System.out.println("(" + (pixel.left + 8) + ", " + (pixel.top) + "): " + p9);
+					System.out.println("(" + (pixel.left + 9) + ", " + (pixel.top) + "): " + p10);
+					System.out.println("(" + (pixel.left + 10) + ", " + (pixel.top) + "): " + p11);
+					System.out.println("(" + (pixel.left + 11) + ", " + (pixel.top) + "): " + p12);
+					System.out.println("(" + (pixel.left + 12) + ", " + (pixel.top) + "): " + p13);
+					System.out.println("(" + (pixel.left + 13) + ", " + (pixel.top) + "): " + p14);
+					System.out.println("(" + (pixel.left + 14) + ", " + (pixel.top) + "): " + p15);
+					System.out.println("(" + (pixel.left + 15) + ", " + (pixel.top) + "): " + p16);
+				}
+			}
 		}
 
+	}
+
+	private void drawPixels2(Graphics2D gr, Color p1, Color p2, Color p3, Color p4, Color p5, Color p6, Color p7, Color p8, 
+			Color p9, Color p10, Color p11, Color p12, Color p13, Color p14, Color p15, Color p16,
+			Insets pixel) {
+		gr.setColor(p1);
+		gr.fillRect(pixel.left *2 + 8, pixel.top   *2 + titleBarHeight, 2, 2);
+		gr.setColor(p2);
+		gr.fillRect(pixel.left *2 + 10, pixel.top   *2 + titleBarHeight, 2, 2);
+		gr.setColor(p3);
+		gr.fillRect(pixel.left *2 + 12, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.setColor(p4);
+		gr.fillRect(pixel.left *2 + 14, pixel.top  *2 + titleBarHeight, 2, 2);		
+		gr.setColor(p5);
+		gr.fillRect(pixel.left *2 + 16, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.setColor(p6);
+		gr.fillRect(pixel.left *2 + 18, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.setColor(p7);
+		gr.fillRect(pixel.left *2 + 20, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.setColor(p8);
+		gr.fillRect(pixel.left *2 + 22, pixel.top  *2 + titleBarHeight, 2, 2);		
+		gr.setColor(p9);
+		gr.fillRect(pixel.left *2 + 24, pixel.top  *2  + titleBarHeight, 2, 2);
+		gr.setColor(p10);
+		gr.fillRect(pixel.left *2 + 26, pixel.top  *2  + titleBarHeight, 2, 2);
+		gr.setColor(p11);
+		gr.fillRect(pixel.left *2 + 28, pixel.top *2 + titleBarHeight, 2, 2);
+		gr.setColor(p12);
+		gr.fillRect(pixel.left *2 + 30, pixel.top *2  + titleBarHeight, 2, 2);		
+		gr.setColor(p13);
+		gr.fillRect(pixel.left *2 + 32, pixel.top *2  + titleBarHeight, 2, 2);
+		gr.setColor(p14);
+		gr.fillRect(pixel.left *2 + 34, pixel.top *2  + titleBarHeight, 2, 2);
+		gr.setColor(p15);
+		gr.fillRect(pixel.left *2 + 36, pixel.top *2  + titleBarHeight, 2, 2);
+		gr.setColor(p16);
+		gr.fillRect(pixel.left *2 + 38, pixel.top *2  + titleBarHeight, 2, 2);		
+	}
+
+	private Color getColor2(int s) {
+		if (s == 0)
+			return Color.BLACK;
+		else
+			return Color.WHITE;
 	}
 
 	private void drawPixels(Graphics2D gr, Color p1, Color p2, Color p3, Color p4, Insets pixel) {
@@ -579,6 +672,11 @@ public class FBViewer extends JFrame {
 			int row = start / 160;
 			int col = start % 160;
 			return new Insets(row, col * 2, 0, 0);
+		} else if (mode == GRAPHICS_MODE_640_480) {
+			int start = (addr & 0xFFFE) - Engine.VIDEO_OFFS;
+			int row = start / 80;
+			int col = start % 80;
+			return new Insets(row, col * 8, 0, 0);
 		}
 		return new Insets(0, 0, 0, 0);
 	}

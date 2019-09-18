@@ -15,9 +15,9 @@ public class DEC_B_MXX extends Instruction {
 		int fixedAddr = fix(this.argument);
 		short operand;
 		if ((fixedAddr & 1) == 0)
-			operand = (short)(ctx.memory[fixedAddr / 2] >> 8);
+			operand = (short)((ctx.memory[fixedAddr / 2] >> 8) & 0xFF);
 		else
-			operand = (short)(ctx.memory[fixedAddr / 2] & 255);		
+			operand = (short)((ctx.memory[fixedAddr / 2] & 255) & 0xFF);		
 		
 		long res = operand - 1;
 
