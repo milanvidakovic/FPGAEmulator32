@@ -33,7 +33,7 @@ public class FBViewer extends JFrame {
 	public static final int TEXT_MODE = 0;
 	public static final int GRAPHICS_MODE_320_240 = 1;
 	protected static final int SPRITE_COUNT = 3;
-	protected static final int SPRITE_DEF_START = 56;
+	protected static final int SPRITE_DEF_START = 64;
 
 	public FBModel memMdl;
 
@@ -52,6 +52,7 @@ public class FBViewer extends JFrame {
 	 * characters
 	 */
 	private int mode = TEXT_MODE;
+	private boolean inverse = false;
 	public static int titleBarHeight = 45;
 
 	public FBViewer(CpuContext ctx, Engine eng) {
@@ -143,7 +144,6 @@ public class FBViewer extends JFrame {
 			}
 		});
 		t.start();
-
 		setVisible(true);
 	}
 
@@ -499,7 +499,7 @@ public class FBViewer extends JFrame {
 	}
 
 	public void updateCell(int addr, short content) {
-		if (mode == TEXT_MODE) {
+		if (this.mode == TEXT_MODE) {
 			if (addr >= Engine.VIDEO_OFFS && addr < (Engine.VIDEO_OFFS + 160 * 60)) {
 				int row = (addr - Engine.VIDEO_OFFS) / 160;
 				Color foregroundColor = getTextColor((short) (~((content >> 12) & 7)));
@@ -519,7 +519,7 @@ public class FBViewer extends JFrame {
 					System.out.println("Background Color: " + this.backgroundColors[addr - Engine.VIDEO_OFFS]);
 				}
 			}
-		} else if (mode == GRAPHICS_MODE_320_240) {
+		} else if (this.mode == GRAPHICS_MODE_320_240) {
 			if (addr >= Engine.VIDEO_OFFS && addr < (Engine.VIDEO_OFFS + (320 * 240) / 2)) {
 				Color p1, p2, p3, p4;
 				if ((addr & 1) == 0) {
@@ -587,21 +587,45 @@ public class FBViewer extends JFrame {
 		int c = col & 7;
 		switch (c) {
 		case 0:
-			return Color.black;
+			if (this.inverse)
+				return Color.white;
+			else
+				return Color.black;
 		case 1:
-			return Color.red;
+			if (this.inverse)
+				return new Color(0, 255, 255);
+			else
+				return Color.red;
 		case 2:
-			return Color.green;
+			if (this.inverse)
+				return new Color(255, 0, 255);
+			else
+				return Color.green;
 		case 3:
-			return new Color(255, 255, 0);
+			if (this.inverse)
+				return new Color(0, 0, 255);
+			else
+				return new Color(255, 255, 0);
 		case 4:
-			return Color.blue;
+			if (this.inverse)
+				return new Color(255, 255, 0);
+			else
+				return Color.blue;
 		case 5:
-			return new Color(255, 0, 255);
+			if (this.inverse)
+				return new Color(0, 255, 0);
+			else
+				return new Color(255, 0, 255);
 		case 6:
-			return new Color(0, 255, 255);
+			if (this.inverse)
+				return new Color(255, 0, 0);
+			else
+				return new Color(0, 255, 255);
 		case 7:
-			return Color.white;
+			if (this.inverse)
+				return Color.black;
+			else
+				return Color.white;
 		default:
 			return Color.black;
 		}
@@ -637,10 +661,17 @@ public class FBViewer extends JFrame {
 		this.foregroundColors = new Color[160 * 60];
 
 		Graphics g = getGraphics();
-		g.setColor(Color.BLACK);
+		if (this.inverse)
+			g.setColor(Color.WHITE);
+		else
+			g.setColor(Color.BLACK);
+		
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-		gr.setColor(Color.BLACK);
+		if (this.inverse)
+			gr.setColor(Color.WHITE);
+		else
+			gr.setColor(Color.BLACK);
 		gr.fillRect(0, 0, this.getWidth(), this.getHeight());
 
 		this.mode = TEXT_MODE;
@@ -661,6 +692,10 @@ public class FBViewer extends JFrame {
 
 	public void setMode(int mode) {
 		this.mode = mode;
+	}
+
+	public void setInverse(boolean b) {
+		this.inverse = b;
 	}
 
 }

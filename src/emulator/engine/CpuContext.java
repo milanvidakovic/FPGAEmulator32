@@ -133,6 +133,15 @@ public class CpuContext {
 			else
 				engine.main.fbViewer.setMode(FBViewer.TEXT_MODE);
 			break;
+		case 130:
+			if (value == 1) {
+				engine.main.fbViewer.setInverse(true);
+				engine.main.fbViewer.reset();
+			} else {
+				engine.main.fbViewer.setInverse(false);
+				engine.main.fbViewer.reset();
+			}
+			break;
 		}
 	}
 }
