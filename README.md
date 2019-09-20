@@ -8,6 +8,6 @@ If you double click, or click&F2 on a cell in the Memory or Memory write window,
 
 Custom assembler files are here: https://github.com/milanvidakovic/Assembler32/
 
-Blog info: https://mvidakovic.blogspot.com/2019/05/32-bit-fpga-based-computer.html
+FPGA-based 32-bit computer: https://github.com/milanvidakovic/FPGAComputer32
 
-  
+Blog info: https://mvidakovic.blogspot.com/2019/05/32-bit-fpga-based-computer.html
