@@ -14,9 +14,9 @@ import emulator.EmulatorMain;
 import emulator.src.alu.ALU_B_REGX_MREGY_XX;
 import emulator.src.alu.ALU_B_REG_XX;
 import emulator.src.alu.ALU_S_REGX_MREGY_XX;
-import emulator.src.alu.ALU_W_REGX_REGY;
 import emulator.src.alu.ALU_S_REG_XX;
 import emulator.src.alu.ALU_W_REGX_MREGY_XX;
+import emulator.src.alu.ALU_W_REGX_REGY;
 import emulator.src.alu.ALU_W_REG_XX;
 import emulator.src.alu.NEG_B_MREG_XX;
 import emulator.src.alu.NEG_S_MREG_XX;
@@ -91,6 +91,7 @@ import emulator.src.nopmovinpushrethaltswap.IRQ;
 import emulator.src.nopmovinpushrethaltswap.MOV_B_REG_XX;
 import emulator.src.nopmovinpushrethaltswap.MOV_S_REG_XX;
 import emulator.src.nopmovinpushrethaltswap.MOV_W_REGX_REGY;
+import emulator.src.nopmovinpushrethaltswap.MOV_W_REGX_REGY_XX;
 import emulator.src.nopmovinpushrethaltswap.MOV_W_REG_XX;
 import emulator.src.nopmovinpushrethaltswap.NOP;
 import emulator.src.nopmovinpushrethaltswap.OUT_XX_REG;
@@ -234,6 +235,8 @@ public class SrcModel extends AbstractTableModel {
 				return new IRQ(memory, addr);
 			case 13:
 				return new MOV_B_REG_XX(memory, addr, src, dest);
+			case 14:
+				return new MOV_W_REGX_REGY_XX(memory, addr, src, dest);
 			case 0xf:
 				return new HALT(memory, addr);
 			}

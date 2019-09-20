@@ -74,22 +74,23 @@ public class FBViewer extends JFrame {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				Thread t = new Thread() {
-					@Override
-					public void run() {
-						while (Engine.irq2_pressed) {
-							try {
-								Thread.sleep(10);
-							} catch (InterruptedException e1) {
-								e1.printStackTrace();
-							}
-						}
+//				Thread t = new Thread() {
+//					@Override
+//					public void run() {
+//						while (Engine.irq2_pressed) {
+//							try {
+//								Thread.sleep(10);
+//							} catch (InterruptedException e1) {
+//								e1.printStackTrace();
+//							}
+//						}
+						try {Thread.sleep(10);} catch (InterruptedException e1) {e1.printStackTrace();}
 						ctx.memory[24] = VkToFpga(e);
 						Engine.irq2_pressed = false;
 						Engine.irq2_released = true;
-					}
-				};
-				t.start();
+//					}
+//				};
+//				t.start();
 			}
 		});
 
