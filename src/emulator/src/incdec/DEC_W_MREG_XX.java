@@ -7,7 +7,7 @@ public class DEC_W_MREG_XX extends Instruction {
 	public DEC_W_MREG_XX(short[] memory, int addr, int src, int dest) {
 		super(memory, addr, src, dest);
 		this.setArgument32();
-		super.setAssembler("dec [" + this.sdest + " + 0x%08x]");
+		super.setAssembler("dec.w [" + this.sdest + " + 0x%08x]");
 	}
 
 	@Override

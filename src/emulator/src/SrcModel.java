@@ -531,9 +531,9 @@ public class SrcModel extends AbstractTableModel {
 			case 9:
 				return new DEC_S_MREG(memory, addr, src, dest);
 			case 10:
-				return new DEC_S_MREG_XX(memory, addr, src, dest);
-			case 11:
 				return new DEC_W_MREG_XX(memory, addr, src, dest);
+			case 11:
+				return new DEC_S_MREG_XX(memory, addr, src, dest);
 			case 12:
 				return new DEC_B_MREG_XX(memory, addr, src, dest);
 			/*case 13:
