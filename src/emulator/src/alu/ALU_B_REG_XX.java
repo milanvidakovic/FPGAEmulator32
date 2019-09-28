@@ -36,6 +36,6 @@ public class ALU_B_REG_XX extends Instruction {
 		ctx.getReg(this.dest).val = (int)res;
 		markFlags(res, ctx.getReg(this.dest).val, ctx);
 		markOverflow(old_a, this.argument, ctx.getReg(this.dest).val, ctx);
-		ctx.pc.val += 6;
+		ctx.pc.val += 4;
 	}
 }

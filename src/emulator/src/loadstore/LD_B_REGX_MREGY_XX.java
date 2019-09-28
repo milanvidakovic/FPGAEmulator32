@@ -7,7 +7,7 @@ public class LD_B_REGX_MREGY_XX extends Instruction {
 	public LD_B_REGX_MREGY_XX(short[] memory, int addr, int src, int dest) {
 		super(memory, addr, src, dest);
 		super.setArgument32();
-		super.setAssembler("ld " + this.sdest + ", [" + this.ssrc + " + 0x%08x]");
+		super.setAssembler("ld.b " + this.sdest + ", [" + this.ssrc + " + 0x%08x]");
 	}
 
 	@Override
