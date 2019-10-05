@@ -115,6 +115,7 @@ public class SrcModel extends AbstractTableModel {
 
 	public SrcModel(String fileName, short[] memory) {
 		this.memory = memory;
+		
 		if (fileName.endsWith(".bin")) {
 			FileInputStream in;
 			try {

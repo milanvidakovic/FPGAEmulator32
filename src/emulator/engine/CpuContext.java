@@ -35,6 +35,7 @@ public class CpuContext {
 	public short[] memory = new short[100000];
 
 	public SrcModel mdl;
+	public static SymTable symTable;
 	public Engine engine;
 
 	public CpuContext() {
@@ -108,7 +109,8 @@ public class CpuContext {
 	}
 
 	public void load(String fileName) {
-		memory = new short[100000];
+		this.memory = new short[100000];
+		symTable = new SymTable(fileName);
 		this.mdl = new SrcModel(fileName, memory);
 	}
 

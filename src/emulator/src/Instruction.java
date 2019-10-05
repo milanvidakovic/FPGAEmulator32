@@ -1,5 +1,7 @@
 package emulator.src;
 
+import java.util.List;
+
 import emulator.engine.CpuContext;
 
 public class Instruction {
@@ -134,7 +136,11 @@ public class Instruction {
 		case BREAK_POINT:
 			return breakPoint;
 		case ADDR:
-			return String.format("%04X", addr);
+			List<String> l = CpuContext.symTable.sym.get(addr);
+			if (l != null && l.size() > 0) {
+				return String.format("%s  (0x%08X)", l.get(0), addr);
+			} else 
+				return String.format("%04X", addr);
 		case CONTENT:
 			return content;
 		case ASSEMBLER:
@@ -182,7 +188,15 @@ public class Instruction {
 			if ((this.argument & 0x80000000) != 0) {
 				this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
 			} else {
-				this.assembler = String.format(format, this.argument);
+				List<String> l = CpuContext.symTable.sym.get(this.argument);
+				if (l != null && l.size() > 0) {
+					format = format.replaceAll("0x", "");
+					format = format.replaceAll("04x", "s");
+					format = format.replaceAll("08x", "s");
+					this.assembler = String.format(format, l.get(0));
+				} else {
+					this.assembler = String.format(format, this.argument);
+				}
 			}
 		} else {
 			this.assembler = format;
