@@ -267,6 +267,8 @@ public class Engine {
 
 	public void halt() {
 		halted = true;
+		if (worker != null) 
+			worker.cancel(true);
 	}
 
 	public void gotoAddr(int startAddr) {
