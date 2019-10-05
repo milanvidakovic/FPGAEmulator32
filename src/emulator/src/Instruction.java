@@ -138,9 +138,9 @@ public class Instruction {
 		case ADDR:
 			List<String> l = CpuContext.symTable.sym.get(addr);
 			if (l != null && l.size() > 0) {
-				return String.format("%s  (0x%08X)", l.get(0), addr);
+				return String.format("%08X (%s)", addr, l.get(0));
 			} else 
-				return String.format("%04X", addr);
+				return String.format("%08X", addr);
 		case CONTENT:
 			return content;
 		case ASSEMBLER:
@@ -190,10 +190,10 @@ public class Instruction {
 			} else {
 				List<String> l = CpuContext.symTable.sym.get(this.argument);
 				if (l != null && l.size() > 0) {
-					format = format.replaceAll("0x", "");
-					format = format.replaceAll("04x", "s");
-					format = format.replaceAll("08x", "s");
-					this.assembler = String.format(format, l.get(0));
+					String format2 = format.replaceAll("0x", "");
+					format2 = format2.replaceAll("04x", "s");
+					format2 = format2.replaceAll("08x", "s");
+					this.assembler = String.format(format2, l.get(0));
 				} else {
 					this.assembler = String.format(format, this.argument);
 				}
