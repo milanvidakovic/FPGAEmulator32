@@ -82,8 +82,8 @@ public class Engine {
 					if (halted) {
 						break;
 					}
-					if (!inIrq && (Engine.irq0 || Engine.irq2_pressed || Engine.irq2_released)) {
-						inIrq = true;
+					if (/*!inIrq && */(Engine.irq0 || Engine.irq2_pressed || Engine.irq2_released)) {
+//						inIrq = true;
 						prepareIrq();
 					}
 					Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];
@@ -136,6 +136,7 @@ public class Engine {
 			ctx.mdl.addr_instr[Engine.IRQ0_ADDR] = instr;
 			Engine.irq0 = false;
 		} else if (Engine.irq2_pressed) {
+			Engine.irq2_pressed = false;
 			// Jump to the IRQ2 pressed handler
 			ctx.pc.val = Engine.IRQ2_PRESSED_ADDR;
 			Instruction instr = ctx.mdl.getInstruction(ctx.memory, Engine.IRQ2_PRESSED_ADDR);
@@ -143,8 +144,8 @@ public class Engine {
 			ctx.mdl.lines.set(Engine.IRQ2_PRESSED_ADDR, instr);
 			instr.tableLine = Engine.IRQ2_PRESSED_ADDR;
 			ctx.mdl.addr_instr[Engine.IRQ2_PRESSED_ADDR] = instr;
-			Engine.irq2_pressed = false;
 		} else if (Engine.irq2_released) {
+			Engine.irq2_released = false;
 			// Jump to the IRQ2 released handler
 			ctx.pc.val = Engine.IRQ2_RELEASED_ADDR;
 			Instruction instr = ctx.mdl.getInstruction(ctx.memory, Engine.IRQ2_RELEASED_ADDR);
@@ -152,13 +153,12 @@ public class Engine {
 			ctx.mdl.lines.set(Engine.IRQ2_RELEASED_ADDR, instr);
 			instr.tableLine = Engine.IRQ2_RELEASED_ADDR;
 			ctx.mdl.addr_instr[Engine.IRQ2_RELEASED_ADDR] = instr;
-			Engine.irq2_released = false;
 		}
 	}
 
 	public void stepInto() throws NotImplementedException {
 		if (!halted) {
-			if (Engine.irq0) {
+			if (Engine.irq0 || Engine.irq2_pressed || Engine.irq2_released) {
 				prepareIrq();
 			}
 			Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];

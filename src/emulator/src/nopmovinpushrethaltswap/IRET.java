@@ -20,5 +20,6 @@ public class IRET extends Instruction {
 		Engine.irq2_pressed = false;
 		Engine.irq2_released = false;
 		Engine.inIrq = false;
+		synchronized (ctx.engine) { ctx.engine.notify(); }
 	}
 }

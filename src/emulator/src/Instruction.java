@@ -191,6 +191,7 @@ public class Instruction {
 				List<String> l = CpuContext.symTable.sym.get(this.argument);
 				if (l != null && l.size() > 0) {
 					String format2 = format.replaceAll("0x", "");
+					format2 = format2.replaceAll("02x", "s");
 					format2 = format2.replaceAll("04x", "s");
 					format2 = format2.replaceAll("08x", "s");
 					this.assembler = String.format(format2, l.get(0));

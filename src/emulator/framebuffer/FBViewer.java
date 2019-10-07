@@ -43,7 +43,7 @@ public class FBViewer extends JFrame {
 
 	private SpriteDef[] spriteDef;
 
-	Font font = new Font(Font.MONOSPACED, Font.PLAIN, 15);
+	Font font = new Font(Font.MONOSPACED, Font.BOLD, 15);
 
 	public JLabel display = new JLabel();
 
@@ -67,9 +67,15 @@ public class FBViewer extends JFrame {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
+System.out.println(e.getKeyChar());
 				ctx.memory[24] = VkToFpga(e);
 				Engine.irq2_pressed = true;
 				Engine.irq2_released = false;
+				try {
+					synchronized (ctx.engine) { ctx.engine.wait(); }
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 			}
 
 			@Override
@@ -84,10 +90,15 @@ public class FBViewer extends JFrame {
 //								e1.printStackTrace();
 //							}
 //						}
-						try {Thread.sleep(10);} catch (InterruptedException e1) {e1.printStackTrace();}
+						//try {Thread.sleep(10);} catch (InterruptedException e1) {e1.printStackTrace();}
 						ctx.memory[24] = VkToFpga(e);
 						Engine.irq2_pressed = false;
 						Engine.irq2_released = true;
+						try {
+							synchronized (ctx.engine) { ctx.engine.wait(); }
+						} catch (InterruptedException e1) {
+							e1.printStackTrace();
+						}
 //					}
 //				};
 //				t.start();
@@ -511,6 +522,7 @@ public class FBViewer extends JFrame {
 				int c = (int) (content & 0xff);
 
 				Graphics2D g2 = (Graphics2D) getGraphics();
+				g2.setFont(this.font);
 
 				drawChar(g2, addr, row, col, c, foregroundColor, backgroundColor);
 				drawChar(gr, addr, row, col, c, foregroundColor, backgroundColor);

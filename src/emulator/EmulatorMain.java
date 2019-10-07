@@ -154,7 +154,7 @@ public class EmulatorMain extends JFrame {
 		btnLoad.addActionListener(e -> loadProg());
 		commands.add(btnGotoStart);
 		this.startAddr = ini.getInt("general", "startAddr", 0xB000);
-		btnGotoStart.setText("" + startAddr);
+		btnGotoStart.setText("" + String.format("0x%08X", startAddr));
 		btnGotoStart.addActionListener(e -> eng.gotoAddr(startAddr));
 		btnGotoStart.setEnabled(false);
 		commands.add(btnRun);
