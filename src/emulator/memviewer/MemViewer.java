@@ -60,13 +60,15 @@ public class MemViewer extends JFrame {
 	public void updateCell32(int addr, int content) {
 		int row = addr / 8;
 		int col = (addr/2) % 4;
-		if (EmulatorMain.DEBUG)
+		if (EmulatorMain.DEBUG) {
 			System.out.println("CHANGED MEMORY LOCATIONS CONTENT at addrs: " + String.format("0x%04x 0x%04x", addr, addr + 2) + ", to: " + String.format("0x%08x", content));
+			System.out.println("row: " + row + ", col: " + col);
+		}
 		memMdl.setValueAt((short)(content >> 16), row, col);
 		if (col <= 2)
 			memMdl.setValueAt((short)(content & 0xFFFF), row, col + 1);
 		else
-			memMdl.setValueAt((short)(content & 0xFFFF), row+1, 1);			
+			memMdl.setValueAt((short)(content & 0xFFFF), row+1, 0);			
 	}
 
 }
