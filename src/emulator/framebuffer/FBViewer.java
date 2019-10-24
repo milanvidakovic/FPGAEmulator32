@@ -68,6 +68,8 @@ public class FBViewer extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent e) {
 System.out.println(e.getKeyChar());
+				if (ctx.memory[Engine.IRQ2_PRESSED_ADDR/2] == 0)
+					return;
 				ctx.memory[24] = VkToFpga(e);
 				Engine.irq2_pressed = true;
 				Engine.irq2_released = false;
@@ -91,6 +93,8 @@ System.out.println(e.getKeyChar());
 //							}
 //						}
 						//try {Thread.sleep(10);} catch (InterruptedException e1) {e1.printStackTrace();}
+						if (ctx.memory[Engine.IRQ2_RELEASED_ADDR/2] == 0)
+							return;
 						ctx.memory[24] = VkToFpga(e);
 						Engine.irq2_pressed = false;
 						Engine.irq2_released = true;
@@ -567,7 +571,6 @@ System.out.println(e.getKeyChar());
 			if (addr >= Engine.VIDEO_OFFS && addr < (Engine.VIDEO_OFFS + (640 * 480) / 8)) {
 				Color p1, p2, p3, p4, p5, p6, p7, p8;
 				Color p9, p10, p11, p12, p13, p14, p15, p16;
-System.out.println("CONTENT: " + content);				
 				p1 = getColor2(content & 0x8000);
 				p2 = getColor2(content & 0x4000);
 				p3 = getColor2(content & 0x2000);
@@ -653,10 +656,17 @@ System.out.println("CONTENT: " + content);
 	}
 
 	private Color getColor2(int s) {
-		if (s == 0)
-			return Color.BLACK;
-		else
-			return Color.WHITE;
+		if (inverse) {
+			if (s == 0)
+				return Color.WHITE;
+			else
+				return Color.BLACK;
+		} else {
+			if (s == 0)
+				return Color.BLACK;
+			else
+				return Color.WHITE;
+		}
 	}
 
 	private void drawPixels(Graphics2D gr, Color p1, Color p2, Color p3, Color p4, Insets pixel) {
@@ -785,7 +795,7 @@ System.out.println("CONTENT: " + content);
 			gr.setColor(Color.BLACK);
 		gr.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-		this.mode = TEXT_MODE;
+//		this.mode = TEXT_MODE;
 	}
 
 	@Override

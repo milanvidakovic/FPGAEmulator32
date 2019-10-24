@@ -119,6 +119,18 @@ public class Engine {
 	}
 
 	private void prepareIrq() {
+		if (Engine.irq0 && (ctx.memory[Engine.IRQ0_ADDR]==0)) {
+			synchronized (this) { this.notify(); }
+			return;
+		}
+		if (Engine.irq2_pressed && (ctx.memory[Engine.IRQ2_PRESSED_ADDR/2]==0)) {
+			synchronized (this) { this.notify(); }
+			return;
+		}
+		if (Engine.irq2_released && (ctx.memory[Engine.IRQ2_RELEASED_ADDR/2]==0)) {
+			synchronized (this) { this.notify(); }
+			return;
+		}
 		// Push flags
 		ctx.sp.val -= 2;
 		ctx.memory[Instruction.fix(ctx.sp.val) / 2] = (short)(ctx.f.val);
