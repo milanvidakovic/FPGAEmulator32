@@ -789,11 +789,11 @@ System.out.println(e.getKeyChar());
 		
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-		if (this.inverse)
-			gr.setColor(Color.WHITE);
-		else
-			gr.setColor(Color.BLACK);
-		gr.fillRect(0, 0, this.getWidth(), this.getHeight());
+//		if (this.inverse)
+//			gr.setColor(Color.WHITE);
+//		else
+//			gr.setColor(Color.BLACK);
+//		gr.fillRect(0, 0, this.getWidth(), this.getHeight());
 
 //		this.mode = TEXT_MODE;
 	}
