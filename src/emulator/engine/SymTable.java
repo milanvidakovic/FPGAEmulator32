@@ -29,7 +29,13 @@ public class SymTable {
 					String[] tokens = s.split("=");
 					if (tokens.length == 2) {
 						try {
-							putInMap(Integer.parseInt(tokens[1].trim().substring(2), 16), tokens[0].trim());
+							String val = tokens[1].trim();
+							if (val.startsWith("-")) {
+								val = "-" + val.substring(3); 
+							} else {
+								val = val.substring(2);
+							}
+							putInMap(Integer.parseInt(val, 16), tokens[0].trim());
 						} catch (NumberFormatException e) {
 							e.printStackTrace();
 						}

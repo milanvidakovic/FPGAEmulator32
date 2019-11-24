@@ -186,7 +186,16 @@ public class Instruction {
 		if (this.hasArgument) {
 			// negativan broj kao argument
 			if ((this.argument & 0x80000000) != 0) {
-				this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
+				List<String> l = CpuContext.symTable.sym.get(this.argument);
+				if (l != null && l.size() > 0) {
+					String format2 = format.replaceAll("0x", "");
+					format2 = format2.replaceAll("02x", "s");
+					format2 = format2.replaceAll("04x", "s");
+					format2 = format2.replaceAll("08x", "s");
+					this.assembler = String.format(format2, l.get(0));
+				} else {
+					this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
+				}
 			} else {
 				List<String> l = CpuContext.symTable.sym.get(this.argument);
 				if (l != null && l.size() > 0) {
