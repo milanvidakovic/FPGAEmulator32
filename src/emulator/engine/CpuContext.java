@@ -37,7 +37,7 @@ public class CpuContext {
 	public SrcModel mdl;
 	public static SymTable symTable;
 	public Engine engine;
-
+	
 	public CpuContext() {
 		this.mdl = new SrcModel(this.memory);
 	}
@@ -116,11 +116,11 @@ public class CpuContext {
 
 	public int fromPort(int port) {
 		switch (port) {
-		case 64: {
+		case 640: {
 			// UART byte
 			return uart;
 		}
-		case 69: {
+		case 690: {
 			return (int) (System.nanoTime() >> 20);
 		}
 		}
@@ -129,7 +129,7 @@ public class CpuContext {
 
 	public void toPort(int port, int value) {
 		switch (port) {
-		case 128:
+		case 1280:
 			if (value == 1)
 				engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_320_240);
 			else if (value == 2)
@@ -137,7 +137,7 @@ public class CpuContext {
 			else
 				engine.main.fbViewer.setMode(FBViewer.TEXT_MODE);
 			break;
-		case 130:
+		case 1300:
 			if (value == 1) {
 				engine.main.fbViewer.setInverse(true);
 				engine.main.fbViewer.reset();

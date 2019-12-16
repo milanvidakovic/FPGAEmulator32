@@ -67,14 +67,18 @@ public class FBViewer extends JFrame {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-System.out.println(e.getKeyChar());
-				if (ctx.memory[Engine.IRQ2_PRESSED_ADDR/2] == 0)
+				System.out.println(e.getKeyChar());
+				if (ctx.memory[Engine.IRQ2_PRESSED_ADDR / 2] == 0)
 					return;
 				ctx.memory[24] = VkToFpga(e);
 				Engine.irq2_pressed = true;
 				Engine.irq2_released = false;
 				try {
-					synchronized (ctx.engine) { ctx.engine.wait(); }
+					if (!EmulatorMain.DEBUG) {
+						synchronized (ctx.engine) {
+							ctx.engine.wait();
+						}
+					}
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
@@ -82,30 +86,20 @@ System.out.println(e.getKeyChar());
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-//				Thread t = new Thread() {
-//					@Override
-//					public void run() {
-//						while (Engine.irq2_pressed) {
-//							try {
-//								Thread.sleep(10);
-//							} catch (InterruptedException e1) {
-//								e1.printStackTrace();
-//							}
-//						}
-						//try {Thread.sleep(10);} catch (InterruptedException e1) {e1.printStackTrace();}
-						if (ctx.memory[Engine.IRQ2_RELEASED_ADDR/2] == 0)
-							return;
-						ctx.memory[24] = VkToFpga(e);
-						Engine.irq2_pressed = false;
-						Engine.irq2_released = true;
-						try {
-							synchronized (ctx.engine) { ctx.engine.wait(); }
-						} catch (InterruptedException e1) {
-							e1.printStackTrace();
+				if (ctx.memory[Engine.IRQ2_RELEASED_ADDR / 2] == 0)
+					return;
+				ctx.memory[24] = VkToFpga(e);
+				Engine.irq2_pressed = false;
+				Engine.irq2_released = true;
+				try {
+					if (!EmulatorMain.DEBUG) {
+						synchronized (ctx.engine) {
+							ctx.engine.wait();
 						}
-//					}
-//				};
-//				t.start();
+					}
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 
@@ -135,25 +129,25 @@ System.out.println(e.getKeyChar());
 							spriteDef[i].x = ctx.memory[(SPRITE_DEF_START + i * 8 + 2) / 2];
 							spriteDef[i].y = ctx.memory[(SPRITE_DEF_START + i * 8 + 4) / 2];
 							spriteDef[i].transparentColor = getColor(ctx.memory[(SPRITE_DEF_START + i * 8 + 6) / 2]);
-							
+
 							if (oldaddr != spriteDef[i].spriteAddr) {
 								fillSprite(spriteDef[i], ctx);
-								spriteDef[i].img = makeColorTransparent(spriteDef[i].img, spriteDef[i].transparentColor);
+								spriteDef[i].img = makeColorTransparent(spriteDef[i].img,
+										spriteDef[i].transparentColor);
 							}
-							
+
 							if (oldx != spriteDef[i].x || oldy != spriteDef[i].y) {
 								if (FBViewer.this.getGraphics() != null)
-									FBViewer.this.getGraphics().drawImage(img, 
-										oldx * 2 + 8, oldy * 2 + titleBarHeight,
-										oldx * 2 + 8 + 32, oldy * 2 + titleBarHeight + 32,
-										oldx * 2 + 8, oldy * 2 + titleBarHeight,
-										oldx * 2 + 8 + 32, oldy * 2 + titleBarHeight + 32,
-										null);
+									FBViewer.this.getGraphics().drawImage(img, oldx * 2 + 8, oldy * 2 + titleBarHeight,
+											oldx * 2 + 8 + 32, oldy * 2 + titleBarHeight + 32, oldx * 2 + 8,
+											oldy * 2 + titleBarHeight, oldx * 2 + 8 + 32,
+											oldy * 2 + titleBarHeight + 32, null);
 							}
-							if (oldaddr != spriteDef[i].spriteAddr || oldx != spriteDef[i].x || oldy != spriteDef[i].y) {
+							if (oldaddr != spriteDef[i].spriteAddr || oldx != spriteDef[i].x
+									|| oldy != spriteDef[i].y) {
 								if (FBViewer.this.getGraphics() != null)
-									FBViewer.this.getGraphics().drawImage(spriteDef[i].img,
-											spriteDef[i].x * 2 + 8, spriteDef[i].y * 2 + titleBarHeight, null);
+									FBViewer.this.getGraphics().drawImage(spriteDef[i].img, spriteDef[i].x * 2 + 8,
+											spriteDef[i].y * 2 + titleBarHeight, null);
 							}
 						}
 					}
@@ -165,31 +159,31 @@ System.out.println(e.getKeyChar());
 	}
 
 	public static Image makeColorTransparent(Image im, final Color color) {
-	    ImageFilter filter = new RGBImageFilter() {
+		ImageFilter filter = new RGBImageFilter() {
 
-	        // the color we are looking for... Alpha bits are set to opaque
-	        public int markerRGB = color.getRGB() | 0xFF000000;
+			// the color we are looking for... Alpha bits are set to opaque
+			public int markerRGB = color.getRGB() | 0xFF000000;
 
-	        public final int filterRGB(int x, int y, int rgb) {
-	            if ((rgb | 0xFF000000) == markerRGB) {
-	                // Mark the alpha bits as zero - transparent
-	                return 0x00FFFFFF & rgb;
-	            } else {
-	                // nothing to do
-	                return rgb;
-	            }
-	        }
-	    };
+			public final int filterRGB(int x, int y, int rgb) {
+				if ((rgb | 0xFF000000) == markerRGB) {
+					// Mark the alpha bits as zero - transparent
+					return 0x00FFFFFF & rgb;
+				} else {
+					// nothing to do
+					return rgb;
+				}
+			}
+		};
 
-	    ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-	    return Toolkit.getDefaultToolkit().createImage(ip);
+		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
+		return Toolkit.getDefaultToolkit().createImage(ip);
 	}
-	
+
 	protected void fillSprite(SpriteDef sp, CpuContext ctx) {
 		Color p1, p2, p3, p4;
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 4; j++) {
-				int addr = sp.spriteAddr + i * 8 + j*2;
+				int addr = sp.spriteAddr + i * 8 + j * 2;
 				short content = ctx.memory[addr / 2];
 				p1 = getColor((short) ((content >> 12) & 7));
 				p2 = getColor((short) ((content >> 8) & 7));
@@ -200,10 +194,10 @@ System.out.println(e.getKeyChar());
 			}
 		}
 	}
-	
+
 	private void drawSpritePixels(Graphics2D gr, Color p1, Color p2, Color p3, Color p4, Insets pixel) {
 		gr.setColor(p1);
-		gr.fillRect(pixel.left * 2 , pixel.top * 2, 2, 2);
+		gr.fillRect(pixel.left * 2, pixel.top * 2, 2, 2);
 		gr.setColor(p2);
 		gr.fillRect(pixel.left * 2 + 2, pixel.top * 2, 2, 2);
 		gr.setColor(p3);
@@ -586,7 +580,7 @@ System.out.println(e.getKeyChar());
 				p13 = getColor2(content & 0x0008);
 				p14 = getColor2(content & 0x0004);
 				p15 = getColor2(content & 0x0002);
-				p16 = getColor2(content &  1);
+				p16 = getColor2(content & 1);
 				Insets pixel = getCoordinate(addr);
 
 				Graphics2D g2 = (Graphics2D) getGraphics();
@@ -618,41 +612,41 @@ System.out.println(e.getKeyChar());
 
 	}
 
-	private void drawPixels2(Graphics2D gr, Color p1, Color p2, Color p3, Color p4, Color p5, Color p6, Color p7, Color p8, 
-			Color p9, Color p10, Color p11, Color p12, Color p13, Color p14, Color p15, Color p16,
+	private void drawPixels2(Graphics2D gr, Color p1, Color p2, Color p3, Color p4, Color p5, Color p6, Color p7,
+			Color p8, Color p9, Color p10, Color p11, Color p12, Color p13, Color p14, Color p15, Color p16,
 			Insets pixel) {
 		gr.setColor(p1);
-		gr.fillRect(pixel.left *2 + 8, pixel.top   *2 + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 8, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p2);
-		gr.fillRect(pixel.left *2 + 10, pixel.top   *2 + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 10, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p3);
-		gr.fillRect(pixel.left *2 + 12, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 12, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p4);
-		gr.fillRect(pixel.left *2 + 14, pixel.top  *2 + titleBarHeight, 2, 2);		
+		gr.fillRect(pixel.left * 2 + 14, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p5);
-		gr.fillRect(pixel.left *2 + 16, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 16, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p6);
-		gr.fillRect(pixel.left *2 + 18, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 18, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p7);
-		gr.fillRect(pixel.left *2 + 20, pixel.top  *2 + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 20, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p8);
-		gr.fillRect(pixel.left *2 + 22, pixel.top  *2 + titleBarHeight, 2, 2);		
+		gr.fillRect(pixel.left * 2 + 22, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p9);
-		gr.fillRect(pixel.left *2 + 24, pixel.top  *2  + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 24, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p10);
-		gr.fillRect(pixel.left *2 + 26, pixel.top  *2  + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 26, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p11);
-		gr.fillRect(pixel.left *2 + 28, pixel.top *2 + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 28, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p12);
-		gr.fillRect(pixel.left *2 + 30, pixel.top *2  + titleBarHeight, 2, 2);		
+		gr.fillRect(pixel.left * 2 + 30, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p13);
-		gr.fillRect(pixel.left *2 + 32, pixel.top *2  + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 32, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p14);
-		gr.fillRect(pixel.left *2 + 34, pixel.top *2  + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 34, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p15);
-		gr.fillRect(pixel.left *2 + 36, pixel.top *2  + titleBarHeight, 2, 2);
+		gr.fillRect(pixel.left * 2 + 36, pixel.top * 2 + titleBarHeight, 2, 2);
 		gr.setColor(p16);
-		gr.fillRect(pixel.left *2 + 38, pixel.top *2  + titleBarHeight, 2, 2);		
+		gr.fillRect(pixel.left * 2 + 38, pixel.top * 2 + titleBarHeight, 2, 2);
 	}
 
 	private Color getColor2(int s) {
@@ -680,7 +674,8 @@ System.out.println(e.getKeyChar());
 		gr.fillRect(pixel.left * 2 + 14, pixel.top * 2 + titleBarHeight, 2, 2);
 	}
 
-	private void drawChar(Graphics2D g2, int addr, int row, int col, int c, Color foregroundColor, Color backgroundColor) {
+	private void drawChar(Graphics2D g2, int addr, int row, int col, int c, Color foregroundColor,
+			Color backgroundColor) {
 		g2.setColor(backgroundColor);
 		g2.fillRect(10 + col * 12, titleBarHeight - 5 + row * 12, 12, 13);
 
@@ -786,7 +781,7 @@ System.out.println(e.getKeyChar());
 			g.setColor(Color.WHITE);
 		else
 			g.setColor(Color.BLACK);
-		
+
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
 //		if (this.inverse)

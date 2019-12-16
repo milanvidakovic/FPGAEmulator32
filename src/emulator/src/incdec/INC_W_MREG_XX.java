@@ -12,9 +12,9 @@ public class INC_W_MREG_XX extends Instruction {
 
 	@Override
 	public void exec(CpuContext ctx) {
-		int old = getMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2);
+		int old = getMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2, fix(ctx.getReg(this.dest).val + this.argument));
 		long res = old + 1;
-		setMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2, (int)res);
+		setMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2, (int)res, fix(ctx.getReg(this.dest).val + this.argument));
 		markFlags(res, (int)res, ctx);
 		markOverflow(old, 1, (int)res, ctx);
 

@@ -30,14 +30,14 @@ public class Engine {
 	public static boolean irq2_pressed = false, irq2_released = false;
 
 	public static int VIDEO_OFFS = 1024;
-
+	
 	public Engine(CpuContext ctx, EmulatorMain main) {
 		this.ctx = ctx;
 		this.main = main;
 		this.worker = null;
 		this.ctx.reset();
 		this.ctx.engine = this;
-		halted = false;
+		this.halted = false;
 	}
 
 	public void reset() {
@@ -52,6 +52,7 @@ public class Engine {
 	}
 
 	public void stop() {
+		
 		if (this.worker != null) {
 			running = false;
 			this.worker.cancel(true);
@@ -60,8 +61,8 @@ public class Engine {
 		if (this.fromStepOver) {
 			this.fromStepOver = false;
 			Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];
-			if (i.breakPoint) {
-				i.breakPoint = false;
+			if (i.breakPointStepOver) {
+				i.breakPointStepOver = false;
 				this.ctx.mdl.fireTableDataChanged();
 			}
 		}
@@ -87,7 +88,7 @@ public class Engine {
 						prepareIrq();
 					}
 					Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];
-					if (i.breakPoint) {
+					if (i.breakPoint || i.breakPointStepOver) {
 						stop();
 						break;
 					}
@@ -188,7 +189,7 @@ public class Engine {
 			if (i != null && isCall(i)) {
 				Instruction next = ctx.mdl.lines.get(i.tableLine + 1);
 				if (next != null) {
-					next.breakPoint = true;
+					next.breakPointStepOver = true;
 					this.fromStepOver = true;
 					run();
 				}
@@ -252,7 +253,9 @@ public class Engine {
 	public void updateViewer(int addr, int content) {
 		fbViewer.updateCell(addr, (short)content);
 		if (EmulatorMain.DEBUG) {
+			memViewer.setTitle(Integer.toHexString(addr) + ":" + Integer.toHexString(content));
 			memViewer.updateCell(addr, (short)content);
+			sfViewer.setTitle(Integer.toHexString(addr) + ":" + Integer.toHexString(content));
 			sfViewer.updateCell(addr, (short)content);
 
 			sfViewer.tblMem.setRowSelectionInterval(addr / 8, addr / 8);
@@ -264,10 +267,13 @@ public class Engine {
 	}
 
 	public void updateViewer32(int addr, int content) {
-		fbViewer.updateCell(addr, (short)content);
+		fbViewer.updateCell(addr, (short)(content>>16));
+		fbViewer.updateCell(addr + 2, (short)(content & 0xFFFF));
 		if (EmulatorMain.DEBUG) {
 			memViewer.updateCell32(addr, content);
+			memViewer.setTitle(Integer.toHexString(addr) + ":" + Integer.toHexString(content));
 			sfViewer.updateCell32(addr, content);
+			sfViewer.setTitle(Integer.toHexString(addr) + ":" + Integer.toHexString(content));
 
 			sfViewer.tblMem.setRowSelectionInterval(addr / 8, (addr / 8)+1);
 			sfViewer.tblMem.setColumnSelectionInterval(((addr / 2) % 4) / 2 + 1, ((addr / 2) % 4) / 2 + 1);

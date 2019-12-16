@@ -63,6 +63,7 @@ import emulator.src.jmp.JNP_XX;
 import emulator.src.jmp.JNZ_XX;
 import emulator.src.jmp.JO_XX;
 import emulator.src.jmp.JP_XX;
+import emulator.src.jmp.JR_REG;
 import emulator.src.jmp.JSE_XX;
 import emulator.src.jmp.JZ_XX;
 import emulator.src.jmp.J_XX;
@@ -106,7 +107,7 @@ public class SrcModel extends AbstractTableModel {
 
 	public String[] columnNames = { "Breakpoint", "Addr", "Content", "Assembler" };
 	public List<Instruction> lines = new ArrayList<Instruction>();
-	public Instruction[] addr_instr = new Instruction[100000];
+	public static Instruction[] addr_instr = new Instruction[100000];
 	public short[] memory;
 
 	public SrcModel(short[] memory) {
@@ -267,6 +268,8 @@ public class SrcModel extends AbstractTableModel {
 				return new JG_XX(memory, addr, src, dest);
 			case 10:
 				return new JSE_XX(memory, addr, src, dest);
+			case 15:
+				return new JR_REG(memory, addr, src, dest);
 			}
 		}
 		case 2: {

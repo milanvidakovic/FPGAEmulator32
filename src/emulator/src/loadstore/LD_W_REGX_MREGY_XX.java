@@ -12,7 +12,7 @@ public class LD_W_REGX_MREGY_XX extends Instruction {
 
 	@Override
 	public void exec(CpuContext ctx) {
-		ctx.getReg(this.dest).val = getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2);
+		ctx.getReg(this.dest).val = getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument));
 		ctx.pc.val += 6;
 	}
 }

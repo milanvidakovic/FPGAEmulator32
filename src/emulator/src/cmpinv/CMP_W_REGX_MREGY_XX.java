@@ -13,9 +13,9 @@ public class CMP_W_REGX_MREGY_XX extends Instruction {
 	@Override
 	public void exec(CpuContext ctx) {
 		int old_a = ctx.getReg(this.dest).val;
-		long res = ctx.getReg(this.dest).val - getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2);
+		long res = ctx.getReg(this.dest).val - getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument));
 		markFlags(res, (int)res, ctx);
-		markOverflow(old_a, getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2), (int)res, ctx);
+		markOverflow(old_a, getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)), (int)res, ctx);
 		ctx.pc.val += 6;
 	}
 }

@@ -11,7 +11,7 @@ public class LD_W_REGX_MREGY extends Instruction {
 
 	@Override
 	public void exec(CpuContext ctx) {
-		ctx.getReg(this.dest).val = getMemContent(ctx, fix(ctx.getReg(this.src).val) / 2);
+		ctx.getReg(this.dest).val = getMemContent(ctx, fix(ctx.getReg(this.src).val) / 2, fix(ctx.getReg(this.src).val));
 		ctx.pc.val += 2;
 	}
 }

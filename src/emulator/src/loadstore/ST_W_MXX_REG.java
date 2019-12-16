@@ -12,7 +12,7 @@ public class ST_W_MXX_REG extends Instruction {
 
 	@Override
 	public void exec(CpuContext ctx) {
-		setMemContent(ctx, fix(this.argument) / 2, ctx.getReg(this.src).val);
+		setMemContent(ctx, fix(this.argument) / 2, ctx.getReg(this.src).val, fix(this.argument));
 		
 		ctx.pc.val += 6;
 		updateViewer32(ctx, fix(this.argument), ctx.getReg(this.dest).val);

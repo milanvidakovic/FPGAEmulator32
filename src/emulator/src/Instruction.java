@@ -3,6 +3,7 @@ package emulator.src;
 import java.util.List;
 
 import emulator.engine.CpuContext;
+import emulator.framebuffer.FBViewer;
 
 public class Instruction {
 
@@ -55,6 +56,7 @@ public class Instruction {
 	public static int FNAN = 0b0111111111111111;
 
 	public boolean breakPoint;
+	public boolean breakPointStepOver;
 	public int addr;
 	public String content = "";
 	public short opcode;
@@ -73,12 +75,23 @@ public class Instruction {
 	 * Table row where this instruction is placed.
 	 */
 	public int tableLine;
+	private String symAddr;
+	public String addrStr;
 
 	private Instruction(short[] memory, int addr) {
 		this.addr = addr - 2;
 		this.memory = memory;
 		this.opcode = memory[this.addr / 2];
 		setContent();
+
+		List<String> l = CpuContext.symTable.sym.get(this.addr);
+		if (l != null && l.size() > 0) {
+			this.symAddr = l.get(0);
+			this.addrStr = String.format("%08X (%s)", this.addr, l.get(0));
+		} else {
+			this.addrStr = String.format("%08X", this.addr);
+			this.symAddr = this.addrStr;
+		}
 	}
 
 	public Instruction(short[] memory, int addr, int src, int dest) {
@@ -136,11 +149,7 @@ public class Instruction {
 		case BREAK_POINT:
 			return breakPoint;
 		case ADDR:
-			List<String> l = CpuContext.symTable.sym.get(addr);
-			if (l != null && l.size() > 0) {
-				return String.format("%08X (%s)", addr, l.get(0));
-			} else 
-				return String.format("%08X", addr);
+			return addrStr;
 		case CONTENT:
 			return content;
 		case ASSEMBLER:
@@ -182,28 +191,64 @@ public class Instruction {
 		this.arglen = 4;
 	}
 
+	private int findLabel(List<String> l) {
+		if (l.size() == 1)
+			return 0;
+		for (int k = this.addr; k >= 0xB000; k--) {
+			Instruction i = SrcModel.addr_instr[k];
+			if (i != null) {
+				for (int j = 0; j < l.size(); j++) {
+					String lbl = l.get(j);
+					if (lbl.contains(i.symAddr)) {
+						return j;
+					}
+				}
+			}
+		}
+		for (int k = this.addr; k < 90000; k++) {
+			Instruction i = SrcModel.addr_instr[k];
+			if (i != null) {
+				for (int j = 0; j < l.size(); j++) {
+					String lbl = l.get(j);
+					if (lbl.contains(i.symAddr)) {
+						return j;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
 	public void setAssembler(String format) {
 		if (this.hasArgument) {
 			// negativan broj kao argument
 			if ((this.argument & 0x80000000) != 0) {
 				List<String> l = CpuContext.symTable.sym.get(this.argument);
 				if (l != null && l.size() > 0) {
+					int idx = findLabel(l);
+					if (idx == -1) {
+						this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
+						return;
+					}
 					String format2 = format.replaceAll("0x", "");
 					format2 = format2.replaceAll("02x", "s");
 					format2 = format2.replaceAll("04x", "s");
 					format2 = format2.replaceAll("08x", "s");
-					this.assembler = String.format(format2, l.get(0));
+					this.assembler = String.format(format2 + "      ; -%08x", l.get(idx), neg(this.argument));
 				} else {
 					this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
 				}
 			} else {
 				List<String> l = CpuContext.symTable.sym.get(this.argument);
 				if (l != null && l.size() > 0) {
+					int idx = findLabel(l);
+					if (idx == -1)
+						idx = 0;
 					String format2 = format.replaceAll("0x", "");
 					format2 = format2.replaceAll("02x", "s");
 					format2 = format2.replaceAll("04x", "s");
 					format2 = format2.replaceAll("08x", "s");
-					this.assembler = String.format(format2, l.get(0));
+					this.assembler = String.format(format2, l.get(idx));
 				} else {
 					this.assembler = String.format(format, this.argument);
 				}
@@ -265,6 +310,9 @@ public class Instruction {
 	}
 
 	protected void updateViewer(CpuContext ctx, int addr, int content) {
+		if (addr == 0x2e34) {
+			System.out.println("ASDF");
+		}
 		ctx.engine.updateViewer(addr, content);
 	}
 
@@ -357,13 +405,53 @@ public class Instruction {
 		return (i1 << 16) | i2;
 	}
 
-	public int getMemContent(CpuContext ctx, int addr) {
-		short w1 = (short) (ctx.memory[addr]);
-		short w2 = (short) (ctx.memory[addr + 1]);
-		return fixInt(w1, w2);
+	public int getMemContent(CpuContext ctx, int addr, int realAddr) {
+		if ((realAddr & 0x80000000) != 0) {
+			switch (realAddr & 0x7FFFFFFF) {
+			case 64: {
+				// UART byte
+				return ctx.uart;
+			}
+			case 69: {
+				return (int) (System.nanoTime() >> 20);
+			}
+			}
+			return 0;
+		} else {
+			short w1 = (short) (ctx.memory[addr]);
+			short w2 = (short) (ctx.memory[addr + 1]);
+			return fixInt(w1, w2);
+		}
 	}
 
-	public void setMemContent(CpuContext ctx, int addr, int val) {
+	public void setMemContent(CpuContext ctx, int addr, short val, int realAddr) {
+		if ((realAddr & 0x80000000) != 0) {
+			int r = realAddr & 0x7FFFFFFF;
+			switch (r) {
+			case 128:
+				if (val == 1)
+					ctx.engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_320_240);
+				else if (val == 2)
+					ctx.engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_640_480);
+				else
+					ctx.engine.main.fbViewer.setMode(FBViewer.TEXT_MODE);
+				break;
+			case 130:
+				if (val == 1) {
+					ctx.engine.main.fbViewer.setInverse(true);
+					ctx.engine.main.fbViewer.reset();
+				} else {
+					ctx.engine.main.fbViewer.setInverse(false);
+					ctx.engine.main.fbViewer.reset();
+				}
+				break;
+			}
+		} else {
+			ctx.memory[addr] = val;
+		}
+	}
+
+	public void setMemContent(CpuContext ctx, int addr, int val, int realAddr) {
 		ctx.memory[addr] = (short) (val >> 16);
 		ctx.memory[addr + 1] = (short) (val & 0xFFFF);
 	}

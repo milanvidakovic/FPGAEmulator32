@@ -12,8 +12,8 @@ public class INV_W_MREG_XX extends Instruction {
 
 	@Override
 	public void exec(CpuContext ctx) {
-		long res = ~getMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2);
-		setMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2, (int)res);
+		long res = ~getMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2, fix(ctx.getReg(this.dest).val + this.argument));
+		setMemContent(ctx, fix(ctx.getReg(this.dest).val + this.argument) / 2, (int)res, fix(ctx.getReg(this.dest).val + this.argument));
 		markFlags(res, (int)res, ctx);
 		ctx.pc.val += 6;
 		updateViewer32(ctx, fix(ctx.getReg(this.dest).val + this.argument), (int)res);

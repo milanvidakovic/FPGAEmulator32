@@ -21,6 +21,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -33,6 +34,7 @@ import emulator.framebuffer.FBViewer;
 import emulator.memviewer.MemViewer;
 import emulator.src.Instruction;
 import emulator.src.NotImplementedException;
+import emulator.src.SrcModel;
 import emulator.util.IniFile;
 import emulator.util.WindowUtil;
 
@@ -52,6 +54,7 @@ public class EmulatorMain extends JFrame {
 	public JButton btnReset = new JButton("Reset");
 	public JButton btnExit = new JButton("Exit");
 	JCheckBox chbDebug = new JCheckBox("Debug");
+	public JButton btnFind = new JButton("Find");
 
 	public JScrollPane src;
 	public JTable tblSrc;
@@ -178,7 +181,9 @@ public class EmulatorMain extends JFrame {
 			}
 		});
 		commands.add(chbDebug);
-		commands.add(Box.createHorizontalStrut(50));
+		
+		btnFind.addActionListener(e-> {findInCode();});
+		commands.add(btnFind);
 
 		commands.add(btnStepOver);
 		btnStepOver.setEnabled(false);
@@ -239,14 +244,19 @@ public class EmulatorMain extends JFrame {
 						btnStepInto.doClick();
 						e.consume();
 						break;
-					case KeyEvent.VK_ESCAPE:
-						btnStop.doClick();
-						e.consume();
-						break;
+//					case KeyEvent.VK_ESCAPE:
+//						btnStop.doClick();
+//						e.consume();
+//						break;
 					case KeyEvent.VK_R:
 						if (e.isControlDown()) {
 							btnReset.doClick();
 							e.consume();
+						}
+						break;
+					case KeyEvent.VK_F:
+						if (e.isControlDown()) {
+							findInCode();
 						}
 						break;
 					}
@@ -262,6 +272,33 @@ public class EmulatorMain extends JFrame {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
+	}
+
+	private void findInCode() {
+		String toFind = JOptionPane.showInputDialog(this, "Enter label to find:");
+		if (toFind != null && !toFind.equals("")) {
+			toFind = toFind.toUpperCase();
+			for (int i = 0xB000; i < 0xB000 + 10000; i++) {
+				Instruction instr = SrcModel.addr_instr[i];
+				if (instr != null) {
+					String label = instr.addrStr.toUpperCase();
+					if (label.contains(toFind)) {
+						this.tblSrc.setRowSelectionInterval(instr.tableLine, instr.tableLine);
+						if (this.tblSrc.getCellRect(instr.tableLine, 0, true).y > this.src.getViewport().getHeight()) {
+							this.tblSrc.scrollRectToVisible(this.tblSrc.getCellRect(instr.tableLine, 0, true));
+						} else {
+							this.tblSrc.scrollRectToVisible(this.tblSrc.getCellRect(0, 0, true));
+						}
+						int res = JOptionPane.showConfirmDialog(this,  "Continue?", "Find", JOptionPane.YES_NO_OPTION);
+						if ((res == JOptionPane.NO_OPTION) || (res == -1))
+						{
+							break;
+						}
+					}
+				}
+			}
+		}
+		
 	}
 
 	private void saveSettings() {
