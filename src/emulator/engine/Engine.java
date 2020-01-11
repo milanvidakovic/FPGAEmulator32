@@ -22,6 +22,8 @@ public class Engine {
 	private FBViewer fbViewer;
 	private boolean halted;
 
+	public static int MEM_SIZE = 200000;
+	
 	public static boolean inIrq = false; 
 	public static short IRQ0_ADDR = 8;
 	public static boolean irq0 = false;
@@ -52,7 +54,6 @@ public class Engine {
 	}
 
 	public void stop() {
-		
 		if (this.worker != null) {
 			running = false;
 			this.worker.cancel(true);
@@ -71,7 +72,7 @@ public class Engine {
 	}
 
 	public void run() {
-		if (halted) {
+		if (halted || running) {
 			return;
 		}
 		running = true;
@@ -88,8 +89,13 @@ public class Engine {
 						prepareIrq();
 					}
 					Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];
+					
+//					if (EmulatorMain.DEBUG) {
+//						System.out.println(i);
+//					}
+					
 					if (i.breakPoint || i.breakPointStepOver) {
-						stop();
+						running = false;
 						break;
 					}
 					try {
@@ -285,8 +291,10 @@ public class Engine {
 
 	public void halt() {
 		halted = true;
-		if (worker != null) 
+		if (worker != null) { 
+			this.running = false;
 			worker.cancel(true);
+		}
 	}
 
 	public void gotoAddr(int startAddr) {

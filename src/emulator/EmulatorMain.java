@@ -278,7 +278,7 @@ public class EmulatorMain extends JFrame {
 		String toFind = JOptionPane.showInputDialog(this, "Enter label to find:");
 		if (toFind != null && !toFind.equals("")) {
 			toFind = toFind.toUpperCase();
-			for (int i = 0xB000; i < 0xB000 + 10000; i++) {
+			for (int i = 0xB000; i < Engine.MEM_SIZE; i++) {
 				Instruction instr = SrcModel.addr_instr[i];
 				if (instr != null) {
 					String label = instr.addrStr.toUpperCase();

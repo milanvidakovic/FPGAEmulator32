@@ -11,6 +11,7 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 import emulator.EmulatorMain;
+import emulator.engine.Engine;
 import emulator.src.alu.ALU_B_REGX_MREGY_XX;
 import emulator.src.alu.ALU_B_REG_XX;
 import emulator.src.alu.ALU_S_REGX_MREGY_XX;
@@ -107,7 +108,7 @@ public class SrcModel extends AbstractTableModel {
 
 	public String[] columnNames = { "Breakpoint", "Addr", "Content", "Assembler" };
 	public List<Instruction> lines = new ArrayList<Instruction>();
-	public static Instruction[] addr_instr = new Instruction[100000];
+	public static Instruction[] addr_instr = new Instruction[Engine.MEM_SIZE];
 	public short[] memory;
 
 	public SrcModel(short[] memory) {
@@ -122,7 +123,7 @@ public class SrcModel extends AbstractTableModel {
 			try {
 				in = new FileInputStream(fileName);
 
-				byte[] buffer = new byte[100000];
+				byte[] buffer = new byte[Engine.MEM_SIZE];
 				in.read(buffer);
 
 				parse(buffer);
@@ -193,7 +194,7 @@ public class SrcModel extends AbstractTableModel {
 			if (instr.hasArgument) {
 				addr += instr.arglen;
 			}
-			if (addr == 100000)
+			if (addr == Engine.MEM_SIZE)
 				finished = true;
 			addr_instr[instr.addr] = instr;
 		}
@@ -709,7 +710,7 @@ public class SrcModel extends AbstractTableModel {
 
 	public void reset() {
 		lines.clear();
-		addr_instr = new Instruction[100000];
+		addr_instr = new Instruction[Engine.MEM_SIZE];
 	}
 
 }

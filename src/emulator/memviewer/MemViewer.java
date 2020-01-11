@@ -1,16 +1,25 @@
 package emulator.memviewer;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import emulator.EmulatorMain;
 import emulator.engine.CpuContext;
 import emulator.engine.Engine;
+import emulator.src.Instruction;
 import emulator.util.WindowUtil;
 
 /**
@@ -22,6 +31,8 @@ public class MemViewer extends JFrame {
 	public JTable tblMem;
 	public MemModel memMdl;
 	public JScrollPane src;
+	
+	public MouseListener popupListener;
 
 	public JLabel display = new JLabel();
 
@@ -42,6 +53,35 @@ public class MemViewer extends JFrame {
 		display.setText("                ");
 		pDisp.add(display);
 		getContentPane().add(pDisp, BorderLayout.SOUTH);
+
+		// popup menu
+		JPopupMenu popup = new JPopupMenu();
+		JMenuItem menuItem = new JMenuItem("Go to address");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// If we choose the "Go to address" option from the
+				// popup menu over some instruction
+				// this code will just go to that location
+				// (won't set the break point)
+				String s = JOptionPane.showInputDialog("Enter address:");
+				if (s != null) {
+					// get the argument of that instruction
+					// and look at it as an address
+					int addr;
+					if (s.startsWith("0x"))
+						addr = Integer.parseInt(s.substring(2), 16);
+					else
+						addr = Integer.parseInt(s);
+					addr /= 8;
+					tblMem.setRowSelectionInterval(addr, addr);
+					tblMem.scrollRectToVisible(tblMem.getCellRect(addr, 0, true));
+				}
+			}
+		});
+		popup.add(menuItem);
+		popupListener = new PopupListener(popup);
+		tblMem.addMouseListener(popupListener);
 
 		WindowUtil.setLocation(ctx.engine.main.ini.getInt(catName, "x", 1024), ctx.engine.main.ini.getInt(catName, "y", 100), 
 				ctx.engine.main.ini.getInt(catName, "width", 400), ctx.engine.main.ini.getInt(catName, "height", 700), this);
@@ -72,3 +112,26 @@ public class MemViewer extends JFrame {
 	}
 
 }
+
+class PopupListener extends MouseAdapter {
+	JPopupMenu popup;
+
+	PopupListener(JPopupMenu popupMenu) {
+		popup = popupMenu;
+	}
+
+	public void mousePressed(MouseEvent e) {
+		maybeShowPopup(e);
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		maybeShowPopup(e);
+	}
+
+	private void maybeShowPopup(MouseEvent e) {
+		if (e.isPopupTrigger()) {
+			popup.show(e.getComponent(), e.getX(), e.getY());
+		}
+	}
+}
+

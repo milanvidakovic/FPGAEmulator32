@@ -3,6 +3,7 @@ package emulator.src;
 import java.util.List;
 
 import emulator.engine.CpuContext;
+import emulator.engine.DebugTable;
 import emulator.framebuffer.FBViewer;
 
 public class Instruction {
@@ -159,13 +160,18 @@ public class Instruction {
 	}
 
 	public void setContent() {
-		if (this.hasArgument) {
-			if (this.arglen == 4)
-				this.content = String.format("%04x, %08x", this.opcode, this.argument);
-			else if (this.arglen == 2)
-				this.content = String.format("%04x, %04x", this.opcode, this.argument);
+		if (DebugTable.addresses.containsKey(this.addr)) {
+			this.content = String.format("%02x, %02x", (this.opcode >>> 8) & 0xFF, this.opcode & 0xFF);
+			this.hasArgument = false;
 		} else {
-			this.content = String.format("%04x", this.opcode);
+			if (this.hasArgument) {
+				if (this.arglen == 4)
+					this.content = String.format("%04x, %08x", this.opcode, this.argument);
+				else if (this.arglen == 2)
+					this.content = String.format("%04x, %04x", this.opcode, this.argument);
+			} else {
+				this.content = String.format("%04x", this.opcode);
+			}
 		}
 	}
 
@@ -220,41 +226,45 @@ public class Instruction {
 	}
 
 	public void setAssembler(String format) {
-		if (this.hasArgument) {
-			// negativan broj kao argument
-			if ((this.argument & 0x80000000) != 0) {
-				List<String> l = CpuContext.symTable.sym.get(this.argument);
-				if (l != null && l.size() > 0) {
-					int idx = findLabel(l);
-					if (idx == -1) {
+		if (DebugTable.addresses.containsKey(this.addr)) {
+			this.assembler = String.format("%c, %c", (this.opcode >> 8) & 0xFF, this.opcode & 0xFF);
+		} else {
+			if (this.hasArgument) {
+				// negativan broj kao argument
+				if ((this.argument & 0x80000000) != 0) {
+					List<String> l = CpuContext.symTable.sym.get(this.argument);
+					if (l != null && l.size() > 0) {
+						int idx = findLabel(l);
+						if (idx == -1) {
+							this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
+							return;
+						}
+						String format2 = format.replaceAll("0x", "");
+						format2 = format2.replaceAll("02x", "s");
+						format2 = format2.replaceAll("04x", "s");
+						format2 = format2.replaceAll("08x", "s");
+						this.assembler = String.format(format2 + "      ; -%08x", l.get(idx), neg(this.argument));
+					} else {
 						this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
-						return;
 					}
-					String format2 = format.replaceAll("0x", "");
-					format2 = format2.replaceAll("02x", "s");
-					format2 = format2.replaceAll("04x", "s");
-					format2 = format2.replaceAll("08x", "s");
-					this.assembler = String.format(format2 + "      ; -%08x", l.get(idx), neg(this.argument));
 				} else {
-					this.assembler = String.format(format + "      ; -%08x", this.argument, neg(this.argument));
+					List<String> l = CpuContext.symTable.sym.get(this.argument);
+					if (l != null && l.size() > 0) {
+						int idx = findLabel(l);
+						if (idx == -1)
+							idx = 0;
+						String format2 = format.replaceAll("0x", "");
+						format2 = format2.replaceAll("02x", "s");
+						format2 = format2.replaceAll("04x", "s");
+						format2 = format2.replaceAll("08x", "s");
+						this.assembler = String.format(format2, l.get(idx));
+					} else {
+						this.assembler = String.format(format, this.argument);
+					}
 				}
 			} else {
-				List<String> l = CpuContext.symTable.sym.get(this.argument);
-				if (l != null && l.size() > 0) {
-					int idx = findLabel(l);
-					if (idx == -1)
-						idx = 0;
-					String format2 = format.replaceAll("0x", "");
-					format2 = format2.replaceAll("02x", "s");
-					format2 = format2.replaceAll("04x", "s");
-					format2 = format2.replaceAll("08x", "s");
-					this.assembler = String.format(format2, l.get(idx));
-				} else {
-					this.assembler = String.format(format, this.argument);
-				}
+				this.assembler = format;
 			}
-		} else {
-			this.assembler = format;
 		}
 	}
 
@@ -469,4 +479,10 @@ public class Instruction {
 		ctx.memory[addr + 1] = w2;
 	}
 
+	@Override
+	public String toString() {
+		return "Instruction [addr=" + String.format("%08x", addr) + ", opcode=" + String.format("%04X", opcode) + ", assembler=" + assembler + "]";
+	}
+
+	
 }

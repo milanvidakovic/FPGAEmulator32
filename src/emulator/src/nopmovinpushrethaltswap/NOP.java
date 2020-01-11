@@ -6,7 +6,7 @@ import emulator.src.Instruction;
 public class NOP extends Instruction {
 	public NOP(short[]memory, int addr) {
 		super(memory, addr, 0, 0);
-		this.assembler = "nop";
+		this.setAssembler("nop");
 		super.setContent();
 	}
 	

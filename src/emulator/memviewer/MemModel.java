@@ -3,12 +3,13 @@ package emulator.memviewer;
 import javax.swing.table.AbstractTableModel;
 
 import emulator.engine.CpuContext;
+import emulator.engine.Engine;
 
 public class MemModel extends AbstractTableModel {
 	private static final long serialVersionUID = 305334635501584898L;
 	
 	public String[] columnNames = { "Addr", "0-1", "2-3", "4-5", "6-7"};
-	public short[][] grid = new short[65536 / 4][5];
+	public int[][] grid = new int[Engine.MEM_SIZE / 4][5];
 
 	private CpuContext ctx;
 	
@@ -16,10 +17,10 @@ public class MemModel extends AbstractTableModel {
 		this.ctx = ctx;
 		
 		int addr = 0;
-		for (int i = 0; i < (65536/4); i++) {
+		for (int i = 0; i < (Engine.MEM_SIZE/4); i++) {
 			for (int j = 0; j < 5; j++) {
 				if (j == 0) {
-					grid[i][j] = (short)(addr * 2);
+					grid[i][j] = (addr * 2);
 				} else {
 					grid[i][j] = ctx.memory[addr];
 					addr++;
@@ -45,6 +46,8 @@ public class MemModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int row, int col) {
+		if (col == 0)
+			return String.format("%05x", grid[row][col]);
 		return String.format("%04x", grid[row][col]);
 	}
 

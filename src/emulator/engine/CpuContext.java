@@ -32,10 +32,11 @@ public class CpuContext {
 	// received uart byte
 	public byte uart;
 
-	public short[] memory = new short[100000];
+	public short[] memory = new short[Engine.MEM_SIZE];
 
 	public SrcModel mdl;
 	public static SymTable symTable;
+	private static DebugTable dbgTable;
 	public Engine engine;
 	
 	public CpuContext() {
@@ -109,8 +110,9 @@ public class CpuContext {
 	}
 
 	public void load(String fileName) {
-		this.memory = new short[100000];
-		symTable = new SymTable(fileName);
+		this.memory = new short[Engine.MEM_SIZE];
+		CpuContext.symTable = new SymTable(fileName);
+		CpuContext.dbgTable = new DebugTable(fileName);
 		this.mdl = new SrcModel(fileName, memory);
 	}
 

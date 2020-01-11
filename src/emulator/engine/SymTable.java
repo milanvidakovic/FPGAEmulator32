@@ -8,13 +8,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SymTable {
 	public HashMap<Integer, List<String>> sym;
+	public static Map<String, Integer> addresses;
 	
 	public SymTable(String fileName) {
 		sym = new HashMap<Integer, List<String>>();
-		fileName = fixExt(fileName);
+		addresses = new HashMap<String, Integer>();
+		fileName = fixExt(fileName, ".sym");
 //		System.out.println(fileName);
 		if (fileName == null)
 			return;
@@ -36,6 +39,7 @@ public class SymTable {
 								val = val.substring(2);
 							}
 							putInMap(Integer.parseInt(val, 16), tokens[0].trim());
+							addresses.put(tokens[0].trim(), Integer.parseInt(val, 16));
 						} catch (NumberFormatException e) {
 							e.printStackTrace();
 						}
@@ -62,10 +66,10 @@ public class SymTable {
 		
 	}
 
-	private String fixExt(String fileName) {
+	public static String fixExt(String fileName, String ext) {
 		int idx = fileName.lastIndexOf('.');
 		if (idx != -1) {
-			return fileName.substring(0, idx) + ".sym";
+			return fileName.substring(0, idx) + ext;
 		}
 		return null;
 	}
