@@ -2,6 +2,7 @@ package emulator;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
+import java.awt.GraphicsConfiguration;
 import java.awt.GridLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
@@ -15,7 +16,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 
-import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -30,12 +30,13 @@ import javax.swing.filechooser.FileFilter;
 
 import emulator.engine.CpuContext;
 import emulator.engine.Engine;
-import emulator.framebuffer.FBViewer;
+import emulator.framebuffer.JOGLViewer;
 import emulator.memviewer.MemViewer;
 import emulator.src.Instruction;
 import emulator.src.NotImplementedException;
 import emulator.src.SrcModel;
 import emulator.util.IniFile;
+import emulator.util.MyFileChooser;
 import emulator.util.WindowUtil;
 
 public class EmulatorMain extends JFrame {
@@ -43,9 +44,10 @@ public class EmulatorMain extends JFrame {
 
 	public static boolean DEBUG = false;
 
-	final JFileChooser fc = new JFileChooser();
+	final MyFileChooser fc;
 
 	public JButton btnLoad = new JButton("Load");
+	public JButton btnLoadPrg = new JButton("Load prg");
 	public JButton btnGotoStart = new JButton("");
 	public JButton btnRun = new JButton("Run");
 	public JButton btnStop = new JButton("Stop");
@@ -79,7 +81,7 @@ public class EmulatorMain extends JFrame {
 	 */
 	public MemViewer sfViewer;
 
-	public FBViewer fbViewer;
+	public JOGLViewer fbViewer;
 
 	public MouseListener popupListener;
 
@@ -90,9 +92,10 @@ public class EmulatorMain extends JFrame {
 
 	private int startAddr;
 
-	public EmulatorMain() {
-		ini = new IniFile("emulator.ini");
-
+	public EmulatorMain(GraphicsConfiguration conf, IniFile ini) {
+		super(conf);
+		fc = new MyFileChooser();
+		this.ini = ini;
 		JPanel registers = new JPanel();
 		registers.setLayout(new GridLayout(3, 4));
 
@@ -125,6 +128,7 @@ public class EmulatorMain extends JFrame {
 		JPopupMenu popup = new JPopupMenu();
 		JMenuItem menuItem = new JMenuItem("Go to address");
 		menuItem.addActionListener(new ActionListener() {
+			@SuppressWarnings("static-access")
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// If we choose the "Go to address" option from the
@@ -153,18 +157,15 @@ public class EmulatorMain extends JFrame {
 		popupListener = new PopupListener(popup);
 
 		JPanel commands = new JPanel();
+		commands.add(btnGotoStart);
 		commands.add(btnLoad);
 		btnLoad.addActionListener(e -> loadProg());
-		commands.add(btnGotoStart);
+		btnLoadPrg.addActionListener(e -> loadExternalProgram());
+		commands.add(btnLoadPrg);
 		this.startAddr = ini.getInt("general", "startAddr", 0xB000);
 		btnGotoStart.setText("" + String.format("0x%08X", startAddr));
 		btnGotoStart.addActionListener(e -> eng.gotoAddr(startAddr));
 		btnGotoStart.setEnabled(false);
-		commands.add(btnRun);
-		btnRun.setToolTipText("F8");
-		btnRun.setEnabled(false);
-		btnRun.addActionListener(e -> eng.run());
-		commands.add(btnStop);
 		btnStop.addActionListener(e -> eng.stop());
 		btnStop.setToolTipText("ESC");
 		btnStop.setEnabled(false);
@@ -181,8 +182,10 @@ public class EmulatorMain extends JFrame {
 			}
 		});
 		commands.add(chbDebug);
-		
-		btnFind.addActionListener(e-> {findInCode();});
+
+		btnFind.addActionListener(e -> {
+			findInCode();
+		});
 		commands.add(btnFind);
 
 		commands.add(btnStepOver);
@@ -205,15 +208,18 @@ public class EmulatorMain extends JFrame {
 				e1.printStackTrace();
 			}
 		});
+		commands.add(btnRun);
+		btnRun.setToolTipText("F8");
+		btnRun.setEnabled(false);
+		btnRun.addActionListener(e -> eng.run());
+		commands.add(btnStop);
 
-		commands.add(Box.createHorizontalStrut(50));
 		commands.add(btnReset);
 		btnReset.addActionListener(e -> {
 			eng.reset();
 		});
 		btnReset.setToolTipText("Ctrl+R");
 		btnReset.setEnabled(false);
-		commands.add(Box.createHorizontalStrut(10));
 		commands.add(btnExit);
 		btnExit.addActionListener(e -> {
 			this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
@@ -264,18 +270,48 @@ public class EmulatorMain extends JFrame {
 				return false;
 			}
 		});
-		WindowUtil.setLocation(ini.getInt("general", "x", 100), ini.getInt("general", "y", 100),
-				ini.getInt("general", "width", 800), ini.getInt("general", "height", 600), this);
 
-		//pack();
-		FBViewer.titleBarHeight = 55;
-
+		WindowUtil.setBounds(ini.getInt("general", "x", 100), ini.getInt("general", "y", 100),
+				ini.getInt("general", "width", 800), ini.getInt("general", "height", 600), this,
+				ini.getString("general", "display", "\\Display0"));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
 	}
 
+	/**
+	 * Loading external program into the memory.
+	 */
+	private void loadExternalProgram() {
+		fc.setFileFilter(new FileFilter() {
+			@Override
+			public boolean accept(File f) {
+				if (f.isDirectory())
+					return true;
+				if (f.getName().endsWith(".bin"))
+					return true;
+				return false;
+			}
+
+			@Override
+			public String getDescription() {
+				return "Binary executables";
+			}
+		});
+		fc.setCurrentDirectory(new File(ini.getString("general", "startDirExt", ".")));
+		int returnVal = fc.showOpenDialog(this);
+
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			File file = fc.getSelectedFile();
+			ctx.loadExternalProgram(file.getAbsolutePath());
+			ini.setString("general", "startDirExt", file.getAbsolutePath());
+			ini.saveINI();
+			setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
+	}
+
 	private void findInCode() {
-		String toFind = JOptionPane.showInputDialog(this, "Enter label to find:");
+		String toFind = JOptionPane.showInputDialog(null, "Enter label to find:");
 		if (toFind != null && !toFind.equals("")) {
 			toFind = toFind.toUpperCase();
 			for (int i = 0xB000; i < Engine.MEM_SIZE; i++) {
@@ -289,41 +325,28 @@ public class EmulatorMain extends JFrame {
 						} else {
 							this.tblSrc.scrollRectToVisible(this.tblSrc.getCellRect(0, 0, true));
 						}
-						int res = JOptionPane.showConfirmDialog(this,  "Continue?", "Find", JOptionPane.YES_NO_OPTION);
-						if ((res == JOptionPane.NO_OPTION) || (res == -1))
-						{
+						int res = JOptionPane.showConfirmDialog(null, "Continue?", "Find", JOptionPane.YES_NO_OPTION);
+						if ((res == JOptionPane.NO_OPTION) || (res == -1)) {
 							break;
 						}
 					}
 				}
 			}
 		}
-		
+
 	}
 
 	private void saveSettings() {
 		if (memViewer != null) {
-			ini.setInt("MemViewer", "width", memViewer.getWidth());
-			ini.setInt("MemViewer", "height", memViewer.getHeight());
-			ini.setInt("MemViewer", "x", memViewer.getX());
-			ini.setInt("MemViewer", "y", memViewer.getY());
+			WindowUtil.saveIni(memViewer, "MemViewer", ini);
 		}
 		if (sfViewer != null) {
-			ini.setInt("SfViewer", "width", sfViewer.getWidth());
-			ini.setInt("SfViewer", "height", sfViewer.getHeight());
-			ini.setInt("SfViewer", "x", sfViewer.getX());
-			ini.setInt("SfViewer", "y", sfViewer.getY());
+			WindowUtil.saveIni(sfViewer, "SfViewer", ini);
 		}
 		if (fbViewer != null) {
-			ini.setInt("FB", "width", fbViewer.getWidth());
-			ini.setInt("FB", "height", fbViewer.getHeight());
-			ini.setInt("FB", "x", fbViewer.getX());
-			ini.setInt("FB", "y", fbViewer.getY());
+			WindowUtil.saveIni(fbViewer.getFrame(), "FB", ini);
 		}
-		ini.setInt("general", "width", getWidth());
-		ini.setInt("general", "height", getHeight());
-		ini.setInt("general", "x", getX());
-		ini.setInt("general", "y", getY());
+		WindowUtil.saveIni(this, "general", ini);
 		ini.setInt("general", "debug", DEBUG ? 1 : 0);
 		ini.saveINI();
 	}
@@ -335,7 +358,8 @@ public class EmulatorMain extends JFrame {
 		fc.setFileFilter(new FileFilter() {
 			@Override
 			public boolean accept(File f) {
-				if (f.isDirectory()) return true;
+				if (f.isDirectory())
+					return true;
 				if (f.getName().endsWith(".bin"))
 					return true;
 				return false;
@@ -362,17 +386,23 @@ public class EmulatorMain extends JFrame {
 			if (memViewer != null) {
 				memViewer.dispose();
 			}
-			memViewer = new MemViewer(ctx, eng, "MemViewer");
+			String memDisplayId = ini.getString("MemViewer", "display", "\\Display0");
+			GraphicsConfiguration memConf = WindowUtil.getGraphicsConfiguration(memDisplayId);
+			memViewer = new MemViewer(memConf, ctx, eng, "MemViewer");
 
 			if (sfViewer != null) {
 				sfViewer.dispose();
 			}
-			sfViewer = new MemViewer(ctx, eng, "SfViewer");
+			String sfDisplayId = ini.getString("SfViewer", "display", "\\Display0");
+			GraphicsConfiguration sfConf = WindowUtil.getGraphicsConfiguration(sfDisplayId);
+			sfViewer = new MemViewer(sfConf, ctx, eng, "SfViewer");
 
 			if (fbViewer != null) {
 				fbViewer.dispose();
 			}
-			fbViewer = new FBViewer(ctx, eng);
+			String fbDisplayId = ini.getString("FB", "display", "\\Display0");
+			GraphicsConfiguration fbConf = WindowUtil.getGraphicsConfiguration(fbDisplayId);
+			fbViewer = new JOGLViewer(fbConf, ctx, eng);
 
 			eng.setMemViewer(memViewer);
 			eng.setSfViewer(sfViewer);
@@ -420,8 +450,11 @@ public class EmulatorMain extends JFrame {
 	}
 
 	public static void main(String[] args) {
-		new EmulatorMain();
-
+		IniFile ini = new IniFile("emulator.ini");
+		String displayId = ini.getString("general", "display", "\\Display0");
+		System.out.println("Start DisplayId: " + displayId);
+		GraphicsConfiguration conf = WindowUtil.getGraphicsConfiguration(displayId);
+		new EmulatorMain(conf, ini);
 	}
 
 }

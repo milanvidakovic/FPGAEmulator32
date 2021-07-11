@@ -12,7 +12,10 @@ public class INC_REG extends Instruction {
 	@Override
 	public void exec(CpuContext ctx) {
 		int old = ctx.getReg(this.dest).val;
-		long res = old + 1;
+		long a = (old & 0xffffffffL);
+		long b = 1;
+		long res = a + b;
+
 		ctx.getReg(this.dest).val = (int)res;
 		markFlags(res, ctx.getReg(this.dest).val, ctx);
 		markOverflow(old, 1, (int)res, ctx);

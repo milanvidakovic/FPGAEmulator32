@@ -18,18 +18,18 @@ public class ALU_W_REGX_MREGY_XX extends Instruction {
 		int old_a = ctx.getReg(this.dest).val;
 		long res = 0;
 		switch (type) {
-		case ADD_W: res = ctx.getReg(this.dest).val + getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); break;
-		case SUB_W: res = ctx.getReg(this.dest).val - getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); break;
-		case AND_W: res = ctx.getReg(this.dest).val & getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); break;
-		case OR_W : res = ctx.getReg(this.dest).val | getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); break;
-		case XOR_W: res = ctx.getReg(this.dest).val ^ getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); break;
-		case SHL_W: res = ctx.getReg(this.dest).val << getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); break;
-		case SHR_W: res = ctx.getReg(this.dest).val >>> getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); break;
-		case MUL_W:	res = ctx.getReg(this.dest).val * getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); 
+		case ADD_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) + (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); break;
+		case SUB_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) + (-getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); break;
+		case AND_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) & (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); break;
+		case OR_W : res = (ctx.getReg(this.dest).val & 0xffffffffL) | (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); break;
+		case XOR_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) ^ (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); break;
+		case SHL_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) << (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); break;
+		case SHR_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) >>> (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); break;
+		case MUL_W:	res = (ctx.getReg(this.dest).val & 0xffffffffL) * (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); 
 					ctx.h.val = (int)((res & 0xffffffff00000000L) >> 32);
 					break;
-		case DIV_W: 	res = ctx.getReg(this.dest).val / getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)); 
-					ctx.h.val = (int)(ctx.getReg(this.dest).val % getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)));
+		case DIV_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) / (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument)) & 0xffffffffL); 
+					ctx.h.val = (int)((ctx.getReg(this.dest).val & 0xffffffffL) % (getMemContent(ctx, fix(ctx.getReg(this.src).val + this.argument) / 2, fix(ctx.getReg(this.src).val + this.argument))) & 0xffffffffL);
 					break;
 		default: throw new RuntimeException("Unsupported operation type: " + type);
 		}

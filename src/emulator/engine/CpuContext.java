@@ -1,6 +1,14 @@
 package emulator.engine;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+
 import emulator.framebuffer.FBViewer;
+import emulator.raspbootin.Raspbootin64Client;
 import emulator.registers.FlagsRegister;
 import emulator.registers.Register;
 import emulator.src.SrcModel;
@@ -28,6 +36,8 @@ public class CpuContext {
 	public Register sp = new Register("SP", this);
 	public Register h = new Register("H", this);
 	public FlagsRegister f = new FlagsRegister("F", this);
+	
+	public int IRQ_MASK = 0xFFFF;
 
 	// received uart byte
 	public byte uart;
@@ -36,11 +46,25 @@ public class CpuContext {
 
 	public SrcModel mdl;
 	public static SymTable symTable;
-	private static DebugTable dbgTable;
+	public static DebugTable dbgTable;
 	public Engine engine;
-	
+	private Raspbootin64Client raspbootin;
+	PipedOutputStream serialOut;
+	// Wire an input stream to the output stream, and use a buffer of 2048 bytes
+	PipedInputStream serialIn;
+	public int counterTrigger;
+
 	public CpuContext() {
 		this.mdl = new SrcModel(this.memory);
+		this.serialOut = new PipedOutputStream();
+		// Wire an input stream to the output stream, and use a buffer of 2048 bytes
+		try {
+			this.serialIn = new PipedInputStream(serialOut, 2048);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		this.raspbootin = new Raspbootin64Client(serialOut, serialIn);
+		this.raspbootin.start();
 	}
 
 	public void reset() {
@@ -116,22 +140,44 @@ public class CpuContext {
 		this.mdl = new SrcModel(fileName, memory);
 	}
 
+	public static final int PORT_UART_RX_BYTE = 640; // port which contains received byte via UART
+	public static final int PORT_UART_TX_BUSY = 650; // port which has 1 when UART TX is busy
+	public static final int PORT_MILLIS = 690; // current number of milliseconds counted so far
+	public static final int PORT_MOUSE = 800; // byte from mouse
+
+	public int mouseByte;
 	public int fromPort(int port) {
 		switch (port) {
-		case 640: {
+		case PORT_UART_RX_BYTE:
 			// UART byte
-			return uart;
-		}
-		case 690: {
+			try {
+				int b = serialIn.read();
+				return b;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		case PORT_UART_TX_BUSY:
+			return 0;
+		case PORT_MILLIS:
 			return (int) (System.nanoTime() >> 20);
-		}
+//			return (int) (System.currentTimeMillis());
+		case PORT_MOUSE:
+			if (mouseByte < 0)
+				mouseByte = 256 + mouseByte;
+			System.out.println("PORT MOUSE: " + mouseByte);
+			return mouseByte << 16;
 		}
 		return 0;
 	}
 
+	static final int PORT_UART_TX_SEND_BYTE = 660; // port for sending character via UART
+	static final int PORT_VIDEO_MODE = 1280; // video mode type (0-text; 1-graphics), (write)
+	static final int PORT_TIMER = 1290; // timer irq port (number of milliseconds before the irq is triggered)
+	static final int VGA_TEXT_INVERSE = 1300; // if 1, then the screen is inversed (black letters on white background)
+
 	public void toPort(int port, int value) {
 		switch (port) {
-		case 1280:
+		case PORT_VIDEO_MODE:
 			if (value == 1)
 				engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_320_240);
 			else if (value == 2)
@@ -139,7 +185,7 @@ public class CpuContext {
 			else
 				engine.main.fbViewer.setMode(FBViewer.TEXT_MODE);
 			break;
-		case 1300:
+		case VGA_TEXT_INVERSE:
 			if (value == 1) {
 				engine.main.fbViewer.setInverse(true);
 				engine.main.fbViewer.reset();
@@ -148,6 +194,40 @@ public class CpuContext {
 				engine.main.fbViewer.reset();
 			}
 			break;
+		case PORT_UART_TX_SEND_BYTE:
+			try {
+				serialOut.write(value);
+				serialOut.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			break;
+		case PORT_TIMER:
+			engine.counter = (int) (System.nanoTime() >> 20);
+			this.counterTrigger = value;
+			engine.counterTrigger = (int)(System.nanoTime() >> 20) + value;
+			break;
 		}
+	}
+
+	public void loadExternalProgram(String fileName) {
+		FileInputStream in;
+		try {
+			File f = new File(fileName);
+			in = new FileInputStream(f);
+
+			byte[] buffer = new byte[(int) f.length() * 2];
+			in.read(buffer);
+
+			this.mdl.parse(buffer, 197632/2, (int) f.length());
+			this.mdl.disassm(197632);
+
+			in.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 }

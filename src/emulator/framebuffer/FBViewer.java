@@ -28,12 +28,12 @@ import emulator.engine.Engine;
 import emulator.src.Instruction;
 import emulator.util.WindowUtil;
 
-public class FBViewer extends JFrame {
+public class FBViewer extends JFrame implements IFBViewer {
 	private static final long serialVersionUID = -5500314457803056242L;
 	public static final int TEXT_MODE = 0;
 	public static final int GRAPHICS_MODE_320_240 = 1;
 	public static final int GRAPHICS_MODE_640_480 = 2;
-	protected static final int SPRITE_COUNT = 3;
+	protected static final int SPRITE_COUNT = 4;
 	protected static final int SPRITE_DEF_START = 64;
 
 	public FBModel memMdl;
@@ -54,7 +54,7 @@ public class FBViewer extends JFrame {
 	 */
 	private int mode = TEXT_MODE;
 	private boolean inverse = false;
-	public static int titleBarHeight = 45;
+	public static int titleBarHeight = 40;
 
 	public FBViewer(CpuContext ctx, Engine eng) {
 		super();
@@ -103,8 +103,9 @@ public class FBViewer extends JFrame {
 			}
 		});
 
-		WindowUtil.setLocation(ctx.engine.main.ini.getInt("FB", "x", 1024), ctx.engine.main.ini.getInt("FB", "y", 100),
-				ctx.engine.main.ini.getInt("FB", "width", 400), ctx.engine.main.ini.getInt("FB", "height", 700), this);
+		WindowUtil.setBounds(ctx.engine.main.ini.getInt("FB", "x", 1024), ctx.engine.main.ini.getInt("FB", "y", 100),
+				ctx.engine.main.ini.getInt("FB", "width", 400), ctx.engine.main.ini.getInt("FB", "height", 700),
+				this, ctx.engine.main.ini.getString("FB", "display", "\\Display0"));
 
 		img = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
 		gr = img.createGraphics();
@@ -446,9 +447,9 @@ public class FBViewer extends JFrame {
 		case KeyEvent.VK_ENTER:
 			return 13;
 		case KeyEvent.VK_ESCAPE:
-			return 701;
+			return 27;
 		case KeyEvent.VK_BACK_SPACE:
-			return 700;
+			return 8;
 
 		case KeyEvent.VK_RIGHT:
 			return 4003;
@@ -677,11 +678,11 @@ public class FBViewer extends JFrame {
 	private void drawChar(Graphics2D g2, int addr, int row, int col, int c, Color foregroundColor,
 			Color backgroundColor) {
 		g2.setColor(backgroundColor);
-		g2.fillRect(10 + col * 12, titleBarHeight - 5 + row * 12, 12, 13);
+		g2.fillRect(10 + col * 12, titleBarHeight - 0 + row * 12, 12, 13);
 
 		g2.setColor(foregroundColor);
 		if (c != 32)
-			g2.drawString("" + String.format("%c", c), 10 + col * 12, titleBarHeight + 5 + row * 12);
+			g2.drawString("" + String.format("%c", c), 10 + col * 12, titleBarHeight + 10 + row * 12);
 	}
 
 	private Insets getCoordinate(int addr) {
@@ -812,6 +813,11 @@ public class FBViewer extends JFrame {
 
 	public void setInverse(boolean b) {
 		this.inverse = b;
+	}
+
+	@Override
+	public JFrame getFrame() {
+		return this;
 	}
 
 }

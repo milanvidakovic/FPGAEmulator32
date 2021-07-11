@@ -18,18 +18,18 @@ public class ALU_S_REGX_MREGY_XX extends Instruction {
 		int old_a = ctx.getReg(this.dest).val;
 		long res = 0;
 		switch (type) {
-		case ADD_S: res = ctx.getReg(this.dest).val + ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; break;
-		case SUB_S: res = ctx.getReg(this.dest).val - ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; break;
-		case AND_S: res = ctx.getReg(this.dest).val & ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; break;
-		case OR_S : res = ctx.getReg(this.dest).val | ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; break;
-		case XOR_S: res = ctx.getReg(this.dest).val ^ ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; break;
-		case SHL_S: res = ctx.getReg(this.dest).val << ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; break;
-		case SHR_S: res = ctx.getReg(this.dest).val >>> ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; break;
-		case MUL_S:	res = ctx.getReg(this.dest).val * ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; 
+		case ADD_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) + (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); break;
+		case SUB_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) + (-ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); break;
+		case AND_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) & (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); break;
+		case OR_S : res = (ctx.getReg(this.dest).val & 0xffffffffL) | (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); break;
+		case XOR_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) ^ (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); break;
+		case SHL_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) << (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); break;
+		case SHR_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) >>> (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); break;
+		case MUL_S:	res = (ctx.getReg(this.dest).val & 0xffffffffL) * (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); 
 					ctx.h.val = (int)((res & 0xffffffff00000000L) >> 32);
 					break;
-		case DIV_S: 	res = ctx.getReg(this.dest).val / ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]; 
-					ctx.h.val = ctx.getReg(this.dest).val % ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2];
+		case DIV_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) / (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); 
+					ctx.h.val = (int) ((ctx.getReg(this.dest).val & 0xffffffffL) % (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL));
 					break;
 		default: throw new RuntimeException("Unsupported operation type: " + type);
 		}

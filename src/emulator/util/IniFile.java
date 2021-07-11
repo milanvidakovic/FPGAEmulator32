@@ -12,6 +12,13 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 
 public class IniFile {
+	/**
+	 * Hash mapa koja sadrzi kategorije (sekcije). Hash kljuc je naziv
+	 * kategorije (string), a vrednost je hash mapa koja sadrzi parove
+	 * (parametar, vrednost).
+	 */
+	private Hashtable<String, Hashtable<String, String>> categories = new Hashtable<String, Hashtable<String, String>>();
+
 	private String filename = null;
 
 	/**
@@ -95,12 +102,16 @@ public class IniFile {
 	 */
 	public String getString(String category, String key, String def) {
 		Hashtable<String, String> hm = categories.get(category);
-		if (hm == null)
+		if (hm == null) {
+			hm = new Hashtable<String, String>();
+			categories.put(category, hm);
 			return def;
-		else {
+		} else {
 			String ret = (String) hm.get(key); 
-			if (ret == null) 
+			if (ret == null) {
+				hm.put(key, def);
 				return def;
+			}
 			return ret;
 		}
 	}
@@ -116,14 +127,18 @@ public class IniFile {
 	 */
 	public int getInt(String category, String key, int defaultValue) {
     Hashtable <String, String> hm = categories.get(category);
-    if (hm == null)
+    if (hm == null) {
+    	hm = new Hashtable<String, String>();
+		categories.put(category, hm);
       return defaultValue;
-    else {
+    } else {
     	String value = hm.get(key);
-    	if (value != null)
+    	if (value != null) {
     		return Integer.parseInt(value);
-    	else
+    	} else {
+    		hm.put(key, "" + defaultValue);
     		return defaultValue;
+    	}
     }
   }
 
@@ -208,13 +223,6 @@ public class IniFile {
 			}
 		}
 	}
-
-	/**
-	 * Hash mapa koja sadrzi kategorije (sekcije). Hash kljuc je naziv
-	 * kategorije (string), a vrednost je hash mapa koja sadrzi parove
-	 * (parametar, vrednost).
-	 */
-	private Hashtable<String, Hashtable<String, String>> categories = new Hashtable<String, Hashtable<String, String>>();
 
 	public String toString() {
 		return categories.toString();

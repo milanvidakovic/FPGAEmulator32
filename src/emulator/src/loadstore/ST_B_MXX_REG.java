@@ -7,7 +7,7 @@ public class ST_B_MXX_REG extends Instruction {
 	public ST_B_MXX_REG(short[] memory, int addr, int src, int dest) {
 		super(memory, addr, src, dest);
 		super.setArgument32();
-		super.setAssembler("st.b [0x%08x]" + ", " + this.sdest);
+		super.setAssembler("st.b [0x%08x]" + ", " + this.ssrc);
 	}
 
 	@Override
@@ -16,10 +16,10 @@ public class ST_B_MXX_REG extends Instruction {
 		short content = ctx.memory[fixedAddr / 2];
 		if ((fixedAddr & 1) == 0) {
 			content &= 0x00ff; 
-			content |= ctx.getReg(this.dest).val << 8;
+			content |= ctx.getReg(this.src).val << 8;
 		} else {
 			content &= 0xff00; 
-			content |= ctx.getReg(this.dest).val & 255;
+			content |= ctx.getReg(this.src).val & 255;
 		}
 		ctx.memory[fixedAddr / 2] = content;
 		

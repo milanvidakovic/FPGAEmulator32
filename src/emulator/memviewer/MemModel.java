@@ -47,8 +47,12 @@ public class MemModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int row, int col) {
 		if (col == 0)
-			return String.format("%05x", grid[row][col]);
-		return String.format("%04x", grid[row][col]);
+			return String.format("%05X", grid[row][col]);
+		String s = String.format("%04X", grid[row][col]);
+		if (s.length() > 4) {
+			s = s.substring(s.length() - 4);
+		}
+		return s;
 	}
 
 	@Override
@@ -75,18 +79,18 @@ public class MemModel extends AbstractTableModel {
 	@Override
 	public void setValueAt(Object value, int row, int col) {
 		short s;
-		/*
+		
 		if (value instanceof String) {
 			col--;
 			s = Short.parseShort(value.toString(), 16);
-			ctx.memory[row * 8 + col] = s;
-			ctx.mdl.reset();
-			ctx.mdl.disassm();
-			ctx.mdl.fireTableDataChanged();
-			Instruction i = ctx.mdl.addr_instr[ctx.pc.val];
-			ctx.engine.main.tblSrc.setRowSelectionInterval(i.tableLine, i.tableLine);
-			ctx.engine.main.tblSrc.scrollRectToVisible(ctx.engine.main.tblSrc.getCellRect(i.tableLine, 0, true));
-		} else*/ {
+			ctx.memory[row * 4 + col] = s;
+//			ctx.mdl.reset();
+//			ctx.mdl.disassm();
+//			ctx.mdl.fireTableDataChanged();
+//			Instruction i = ctx.mdl.addr_instr[ctx.pc.val];
+//			ctx.engine.main.tblSrc.setRowSelectionInterval(i.tableLine, i.tableLine);
+//			ctx.engine.main.tblSrc.scrollRectToVisible(ctx.engine.main.tblSrc.getCellRect(i.tableLine, 0, true));
+		} else {
 			s = (short)value;
 		}
 		grid[row][col + 1] = s;

@@ -19,7 +19,9 @@ public class DEC_B_MREG_XX extends Instruction {
 		else
 			operand = (short)((ctx.memory[fixedAddr / 2] & 255) & 0xFF);		
 		
-		long res = operand - 1;
+		long a = (operand & 0xffffffffL);
+		long b = (-1 & 0xffffffffL);
+		long res = a + b;
 		
 		short content = (short)ctx.memory[fixedAddr / 2];
 		if ((fixedAddr & 1) == 0) {

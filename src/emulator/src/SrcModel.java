@@ -31,6 +31,7 @@ import emulator.src.call.CALLNP_XX;
 import emulator.src.call.CALLNZ_XX;
 import emulator.src.call.CALLO_XX;
 import emulator.src.call.CALLP_XX;
+import emulator.src.call.CALLR_REG;
 import emulator.src.call.CALLSE_XX;
 import emulator.src.call.CALLZ_XX;
 import emulator.src.call.CALL_XX;
@@ -45,7 +46,11 @@ import emulator.src.cmpinv.INV_B_MREG_XX;
 import emulator.src.cmpinv.INV_S_MREG_XX;
 import emulator.src.cmpinv.INV_W_MREG_XX;
 import emulator.src.cmpinv.INV_W_REG;
+import emulator.src.floatingpoint.BLIT;
 import emulator.src.floatingpoint.FLOAT_REGX_REGY;
+import emulator.src.floatingpoint.INT_XX;
+import emulator.src.floatingpoint.SEX_B_REGX_REGY;
+import emulator.src.floatingpoint.SEX_S_REGX_REGY;
 import emulator.src.incdec.DEC_B_MREG_XX;
 import emulator.src.incdec.DEC_S_MREG;
 import emulator.src.incdec.DEC_S_MREG_XX;
@@ -57,6 +62,8 @@ import emulator.src.incdec.INC_S_MREG_XX;
 import emulator.src.incdec.INC_W_MREG_XX;
 import emulator.src.incdec.INC_W_REG;
 import emulator.src.jmp.JC_XX;
+import emulator.src.jmp.JGES_XX;
+import emulator.src.jmp.JGS_XX;
 import emulator.src.jmp.JG_XX;
 import emulator.src.jmp.JNC_XX;
 import emulator.src.jmp.JNO_XX;
@@ -65,7 +72,9 @@ import emulator.src.jmp.JNZ_XX;
 import emulator.src.jmp.JO_XX;
 import emulator.src.jmp.JP_XX;
 import emulator.src.jmp.JR_REG;
+import emulator.src.jmp.JSES_XX;
 import emulator.src.jmp.JSE_XX;
+import emulator.src.jmp.JSS_XX;
 import emulator.src.jmp.JZ_XX;
 import emulator.src.jmp.J_XX;
 import emulator.src.loadstore.LD_B_REGX_MREGY;
@@ -154,8 +163,12 @@ public class SrcModel extends AbstractTableModel {
 	}
 
 	private void parse(byte[] buffer) {
+		parse(buffer, 0, this.memory.length / 2);
+	}
+	
+	public void parse(byte[] buffer, int startAddr, int len) {
 		int t, t1, t2;
-		for (int i = 0; i < this.memory.length / 2; i++) {
+		for (int i = 0; i < len; i++) {
 			t1 = buffer[i * 2];
 			if (t1 < 0) {
 				t1 = 256 + t1;
@@ -166,7 +179,7 @@ public class SrcModel extends AbstractTableModel {
 				t2 = 256 + t2;
 			}
 			t += t2;
-			this.memory[i] = (short) t;
+			this.memory[i + startAddr] = (short) t;
 		}
 
 	}
@@ -182,8 +195,19 @@ public class SrcModel extends AbstractTableModel {
 		}
 	}
 
-	public void disassm() {
-		int addr = 0;
+	public void disassmOne(int addr) {
+		Instruction instr = getInstruction(memory, addr);
+		addr += 2;
+		instr.setContent();
+		lines.add(instr);
+		instr.tableLine = lines.size() - 1;
+		if (instr.hasArgument) {
+			addr += instr.arglen;
+		}
+		addr_instr[instr.addr] = instr;
+	}
+	
+	public void disassm(int addr) {
 		boolean finished = false;
 		while (!finished) {
 			Instruction instr = getInstruction(memory, addr);
@@ -198,6 +222,9 @@ public class SrcModel extends AbstractTableModel {
 				finished = true;
 			addr_instr[instr.addr] = instr;
 		}
+	}
+	public void disassm() {
+		disassm(0);
 	}
 
 	public Instruction getInstruction(short[] memory, int addr) {
@@ -235,7 +262,7 @@ public class SrcModel extends AbstractTableModel {
 			case 11:
 				return new MOV_W_REG_XX(memory, addr, src, dest);
 			case 12:
-				return new IRQ(memory, addr);
+				return new IRQ(memory, addr, src, dest);
 			case 13:
 				return new MOV_B_REG_XX(memory, addr, src, dest);
 			case 14:
@@ -269,6 +296,14 @@ public class SrcModel extends AbstractTableModel {
 				return new JG_XX(memory, addr, src, dest);
 			case 10:
 				return new JSE_XX(memory, addr, src, dest);
+			case 11:
+				return new JGS_XX(memory, addr, src, dest);
+			case 12:
+				return new JGES_XX(memory, addr, src, dest);
+			case 13:
+				return new JSS_XX(memory, addr, src, dest);
+			case 14:
+				return new JSES_XX(memory, addr, src, dest);
 			case 15:
 				return new JR_REG(memory, addr, src, dest);
 			}
@@ -298,6 +333,8 @@ public class SrcModel extends AbstractTableModel {
 				return new CALLG_XX(memory, addr, src, dest);
 			case 10:
 				return new CALLSE_XX(memory, addr, src, dest);
+			case 15:
+				return new CALLR_REG(memory, addr, src, dest);
 			}
 		}
 		case 3: {
@@ -579,7 +616,7 @@ public class SrcModel extends AbstractTableModel {
 			}
 		}
 		case 11: {
-			// FLOATING POINT GROUP
+			// FLOATING POINT & SEX & INT GROUP
 			switch (group) {
 			case 2:
 				return new FLOAT_REGX_REGY(memory, addr, src, dest, Instruction.FADD);
@@ -589,6 +626,14 @@ public class SrcModel extends AbstractTableModel {
 				return new FLOAT_REGX_REGY(memory, addr, src, dest, Instruction.FMUL);
 			case 5:
 				return new FLOAT_REGX_REGY(memory, addr, src, dest, Instruction.FDIV);
+			case 6:
+				return new SEX_B_REGX_REGY(memory, addr, src, dest);
+			case 7:
+				return new SEX_S_REGX_REGY(memory, addr, src, dest);
+			case 8:
+				return new BLIT(memory, addr, src, dest);
+			case 15:
+				return new INT_XX(memory, addr, src, dest);
 			}
 		}
 		case 12: {
@@ -656,7 +701,7 @@ public class SrcModel extends AbstractTableModel {
 			}
 		}
 		}
-		return new Instruction(memory, addr, 0, 0);
+		return new Instruction(memory, addr, ir, group);
 	}
 
 	@Override

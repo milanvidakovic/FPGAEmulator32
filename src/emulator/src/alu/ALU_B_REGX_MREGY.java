@@ -25,18 +25,18 @@ public class ALU_B_REGX_MREGY extends Instruction {
 			operand = (short)((ctx.memory[fixedAddr / 2] & 255) & 0xFF);
 		
 		switch (type) {
-		case ADD_B: res = (byte)ctx.getReg(this.dest).val + operand; break;
-		case SUB_B: res = (byte)ctx.getReg(this.dest).val - operand; break;
-		case AND_B: res = (byte)ctx.getReg(this.dest).val & operand; break;
-		case OR_B : res = (byte)ctx.getReg(this.dest).val | operand; break;
-		case XOR_B: res = (byte)ctx.getReg(this.dest).val ^ operand; break;
-		case SHL_B: res = (byte)ctx.getReg(this.dest).val << operand; break;
-		case SHR_B: res = (byte)ctx.getReg(this.dest).val >>> operand; break;
-		case MUL_B:	res = (byte)ctx.getReg(this.dest).val * operand; 
+		case ADD_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) + (operand & 0xffffffffL)); break;
+		case SUB_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) + (-operand & 0xffffffffL)); break;
+		case AND_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) & (operand & 0xffffffffL)); break;
+		case OR_B : res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) | (operand & 0xffffffffL)); break;
+		case XOR_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) ^ (operand & 0xffffffffL)); break;
+		case SHL_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) << (operand & 0xffffffffL)); break;
+		case SHR_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) >>> (operand & 0xffffffffL)); break;
+		case MUL_B:	res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) * (operand & 0xffffffffL)); 
 					ctx.h.val = (byte)((res & 0xffffffff00000000L) >> 32);
 					break;
-		case DIV_B: res = (byte)ctx.getReg(this.dest).val / operand; 
-					ctx.h.val = (byte)(ctx.getReg(this.dest).val % operand);
+		case DIV_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) / (operand & 0xffffffffL)); 
+					ctx.h.val = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) % (operand & 0xffffffffL));
 					break;
 		default: throw new RuntimeException("Unsupported operation type: " + type);
 		}

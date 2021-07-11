@@ -4,7 +4,7 @@ import java.util.List;
 
 import emulator.engine.CpuContext;
 import emulator.engine.DebugTable;
-import emulator.framebuffer.FBViewer;
+import emulator.engine.Engine;
 
 public class Instruction {
 
@@ -288,7 +288,7 @@ public class Instruction {
 			ctx.f.val &= 0xfffe;
 		}
 		// P flag
-		if ((r < 0) || ((r & 0x80000000) == 1)) {
+		if ((r < 0) || ((r & 0x80000000) != 0)) {
 			ctx.f.val &= 0xfff7;
 		} else {
 			ctx.f.val |= 0x8;
@@ -300,9 +300,20 @@ public class Instruction {
 		} else {
 			ctx.f.val &= 0xd;
 		}
+
+		// O flag
+		boolean c = C(ctx);
+		boolean s = !P(ctx);
+		boolean o = c ^ s;
+		if (o)
+			ctx.f.val |= 4;
+		else 
+			ctx.f.val &= 0xfffb;
+		
 	}
 
 	protected void markOverflow(int a, int b, int res, CpuContext ctx) {
+		/*
 		int sa = sign(a);
 		int sb = sign(b);
 		int sr = sign(res);
@@ -313,15 +324,18 @@ public class Instruction {
 			}
 		}
 		ctx.f.val &= 0xfffb;
+		*/
 	}
-
+	
+	/*
 	private int sign(int a) {
 		return a & 0x80000000;
 	}
+	*/
 
 	protected void updateViewer(CpuContext ctx, int addr, int content) {
-		if (addr == 0x2e34) {
-			System.out.println("ASDF");
+		if ((addr < 0) || (addr >= Engine.MEM_SIZE - 1)) {
+			return;
 		}
 		ctx.engine.updateViewer(addr, content);
 	}
@@ -417,16 +431,8 @@ public class Instruction {
 
 	public int getMemContent(CpuContext ctx, int addr, int realAddr) {
 		if ((realAddr & 0x80000000) != 0) {
-			switch (realAddr & 0x7FFFFFFF) {
-			case 64: {
-				// UART byte
-				return ctx.uart;
-			}
-			case 69: {
-				return (int) (System.nanoTime() >> 20);
-			}
-			}
-			return 0;
+			int io = realAddr & 0x7FFFFFFF;
+			return ctx.fromPort(io);
 		} else {
 			short w1 = (short) (ctx.memory[addr]);
 			short w2 = (short) (ctx.memory[addr + 1]);
@@ -437,25 +443,7 @@ public class Instruction {
 	public void setMemContent(CpuContext ctx, int addr, short val, int realAddr) {
 		if ((realAddr & 0x80000000) != 0) {
 			int r = realAddr & 0x7FFFFFFF;
-			switch (r) {
-			case 128:
-				if (val == 1)
-					ctx.engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_320_240);
-				else if (val == 2)
-					ctx.engine.main.fbViewer.setMode(FBViewer.GRAPHICS_MODE_640_480);
-				else
-					ctx.engine.main.fbViewer.setMode(FBViewer.TEXT_MODE);
-				break;
-			case 130:
-				if (val == 1) {
-					ctx.engine.main.fbViewer.setInverse(true);
-					ctx.engine.main.fbViewer.reset();
-				} else {
-					ctx.engine.main.fbViewer.setInverse(false);
-					ctx.engine.main.fbViewer.reset();
-				}
-				break;
-			}
+			ctx.toPort(r, val);
 		} else {
 			ctx.memory[addr] = val;
 		}
@@ -481,8 +469,31 @@ public class Instruction {
 
 	@Override
 	public String toString() {
-		return "Instruction [addr=" + String.format("%08x", addr) + ", opcode=" + String.format("%04X", opcode) + ", assembler=" + assembler + "]";
+		return "Instruction [addr=" + String.format("%08x", addr) + ", opcode=" + String.format("%04X", opcode)
+				+ ", assembler=" + assembler + "]";
 	}
 
+	public boolean P(CpuContext ctx) {
+		return (ctx.f.val & 0x8) != 0;
+	}
+
+	public boolean O(CpuContext ctx) {
+		return (ctx.f.val & 0x4) != 0;
+	}
+
+	public boolean C(CpuContext ctx) {
+		return (ctx.f.val & 0x2) != 0;
+	}
+
+	public boolean Z(CpuContext ctx) {
+		return (ctx.f.val & 0x1) != 0;
+	}
 	
+	public boolean TL(CpuContext ctx) {
+		return (!P(ctx)) ^ O(ctx);
+	}
+	public boolean L(CpuContext ctx) {
+		//return (TL(ctx)) ^ O(ctx);
+		return (C(ctx)) ^ O(ctx);
+	}
 }

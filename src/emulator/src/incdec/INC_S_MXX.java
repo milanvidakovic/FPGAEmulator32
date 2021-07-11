@@ -13,7 +13,10 @@ public class INC_S_MXX extends Instruction {
 	@Override
 	public void exec(CpuContext ctx) {
 		int old = ctx.memory[fix(this.argument) / 2];
-		long res = old + 1;
+		long a = (old & 0xffffffffL);
+		long b = 1;
+		long res = a + b;
+
 		ctx.memory[fix(this.argument) / 2] = (short)res;
 		markFlags(res, (int)res, ctx);
 		markOverflow(old, 1, (int)res, ctx);

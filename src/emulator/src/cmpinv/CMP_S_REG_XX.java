@@ -13,7 +13,9 @@ public class CMP_S_REG_XX extends Instruction {
 	@Override
 	public void exec(CpuContext ctx) {
 		int old_a = ctx.getReg(this.dest).val;
-		long res = ctx.getReg(this.dest).val - this.argument;
+		long a = (ctx.getReg(this.dest).val & 0xffffffffL);
+		long b = (-this.argument & 0xffffffffL);
+		long res = a + b;
 		markFlags(res,(int)res, ctx);
 		markOverflow(old_a, this.argument, (int)res, ctx);
 		ctx.pc.val += 4;

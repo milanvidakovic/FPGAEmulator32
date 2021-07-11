@@ -7,7 +7,7 @@ public class ST_W_MXX_REG extends Instruction {
 	public ST_W_MXX_REG(short[] memory, int addr, int src, int dest) {
 		super(memory, addr, src, dest);
 		super.setArgument32();
-		super.setAssembler("st.w [0x%08x]" + ", " + this.sdest);
+		super.setAssembler("st.w [0x%08x]" + ", " + this.ssrc);
 	}
 
 	@Override

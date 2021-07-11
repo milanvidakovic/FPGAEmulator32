@@ -1,6 +1,7 @@
 package emulator.memviewer;
 
 import java.awt.BorderLayout;
+import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -19,7 +20,6 @@ import javax.swing.JTable;
 import emulator.EmulatorMain;
 import emulator.engine.CpuContext;
 import emulator.engine.Engine;
-import emulator.src.Instruction;
 import emulator.util.WindowUtil;
 
 /**
@@ -36,8 +36,8 @@ public class MemViewer extends JFrame {
 
 	public JLabel display = new JLabel();
 
-	public MemViewer(CpuContext ctx, Engine eng, String catName) {
-		super();
+	public MemViewer(GraphicsConfiguration conf, CpuContext ctx, Engine eng, String catName) {
+		super(conf);
 		if (catName.equals("MemViewer")) {
 			setTitle("Memory");
 		} else {
@@ -73,6 +73,13 @@ public class MemViewer extends JFrame {
 						addr = Integer.parseInt(s.substring(2), 16);
 					else
 						addr = Integer.parseInt(s);
+					updateCell(addr, ctx.memory[addr/2]);
+					updateCell(addr - 2, ctx.memory[addr/2 - 1]);
+					updateCell(addr - 4, ctx.memory[addr/2 - 2]);
+					updateCell(addr - 6, ctx.memory[addr/2 - 3]);
+					updateCell(addr + 2, ctx.memory[addr/2 + 1]);
+					updateCell(addr + 4, ctx.memory[addr/2 + 2]);
+					updateCell(addr + 6, ctx.memory[addr/2 + 3]);
 					addr /= 8;
 					tblMem.setRowSelectionInterval(addr, addr);
 					tblMem.scrollRectToVisible(tblMem.getCellRect(addr, 0, true));
@@ -83,13 +90,15 @@ public class MemViewer extends JFrame {
 		popupListener = new PopupListener(popup);
 		tblMem.addMouseListener(popupListener);
 
-		WindowUtil.setLocation(ctx.engine.main.ini.getInt(catName, "x", 1024), ctx.engine.main.ini.getInt(catName, "y", 100), 
-				ctx.engine.main.ini.getInt(catName, "width", 400), ctx.engine.main.ini.getInt(catName, "height", 700), this);
+		WindowUtil.setBounds(ctx.engine.main.ini.getInt(catName, "x", 1024), ctx.engine.main.ini.getInt(catName, "y", 100), 
+				ctx.engine.main.ini.getInt(catName, "width", 400), ctx.engine.main.ini.getInt(catName, "height", 700), 
+				this, ctx.engine.main.ini.getString(catName, "display", "\\Display0"));
 
 		setVisible(true);
 	}
 
 	public void updateCell(int addr, short content) {
+		if (addr < 0) return;
 		int row = addr / 8;
 		int col = (addr/2) % 4;
 		if (EmulatorMain.DEBUG)

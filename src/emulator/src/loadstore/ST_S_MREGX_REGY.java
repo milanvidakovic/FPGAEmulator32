@@ -11,7 +11,8 @@ public class ST_S_MREGX_REGY extends Instruction {
 
 	@Override
 	public void exec(CpuContext ctx) {
-		ctx.memory[fix(ctx.getReg(this.dest).val) / 2] = (short) ctx.getReg(this.src).val;
+		setMemContent(ctx, fix(ctx.getReg(this.dest).val) / 2, (short) ctx.getReg(this.src).val, fix(ctx.getReg(this.dest).val));
+//		ctx.memory[fix(ctx.getReg(this.dest).val) / 2] = (short) ctx.getReg(this.src).val;
 		
 		ctx.pc.val += 2;
 		updateViewer(ctx, fix(ctx.getReg(this.dest).val), ctx.getReg(this.src).val);

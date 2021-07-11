@@ -21,7 +21,9 @@ public class CMP_B_REG_MXX extends Instruction {
 		else
 			operand = (short)((ctx.memory[fixedAddr / 2] & 255) & 0xFF);		
 		
-		long res = ctx.getReg(this.dest).val  - operand;
+		long a = (ctx.getReg(this.dest).val & 0xffffffffL);
+		long b = (-operand & 0xffffffffL);
+		long res = a + b;
 		
 		markFlags(res, (int)res, ctx);
 		markOverflow(old_a, ctx.memory[fix(this.argument) / 2], (int)res, ctx);

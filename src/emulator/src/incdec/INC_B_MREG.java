@@ -18,7 +18,9 @@ public class INC_B_MREG extends Instruction {
 		else
 			operand = (short)((ctx.memory[fixedAddr / 2] & 255) & 0xFF);		
 		
-		long res = operand + 1;
+		long a = (operand & 0xffffffffL);
+		long b = 1;
+		long res = a + b;
 
 		short content = ctx.memory[fixedAddr / 2];
 		if ((fixedAddr & 1) == 0) {

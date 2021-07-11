@@ -12,7 +12,9 @@ public class DEC_W_REG extends Instruction {
 	@Override
 	public void exec(CpuContext ctx) {
 		int old = ctx.getReg(this.dest).val;
-		long res = old - 1;
+		long a = (old & 0xffffffffL);
+		long b = (-1 & 0xffffffffL);
+		long res = a + b;
 		ctx.getReg(this.dest).val = (int)res;
 		markFlags(res, (int)res, ctx);
 		markOverflow(old, -1, (int)res, ctx);
