@@ -21,9 +21,9 @@ public class ALU_B_REGX_MREGY_XX extends Instruction {
 		int fixedAddr = fix(ctx.getReg(this.src).val + this.argument);
 		short operand;
 		if ((fixedAddr & 1) == 0)
-			operand = (short)((ctx.memory[fixedAddr / 2] >> 8) & 0xFF);
+			operand = (byte)((ctx.memory[fixedAddr / 2] >> 8) & 0xFF);
 		else
-			operand = (short)((ctx.memory[fixedAddr / 2] & 255) & 0xFF);
+			operand = (byte)((ctx.memory[fixedAddr / 2] & 255) & 0xFF);
 		
 		switch (type) {
 		case ADD_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) + (operand & 0xffffffffL)); break;
@@ -36,8 +36,8 @@ public class ALU_B_REGX_MREGY_XX extends Instruction {
 		case MUL_B:	res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) * (operand & 0xffffffffL)); 
 					ctx.h.val = (byte)((res & 0xffffffff00000000L) >> 32);
 					break;
-		case DIV_B: res = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) / (operand & 0xffffffffL)); 
-					ctx.h.val = (byte)((ctx.getReg(this.dest).val & 0xffffffffL) % (operand & 0xffffffffL));
+		case DIV_B: res = (byte)(ctx.getReg(this.dest).val / operand); 
+					ctx.h.val = (byte)(ctx.getReg(this.dest).val % operand);
 					break;
 		default: throw new RuntimeException("Unsupported operation type: " + type);
 		}

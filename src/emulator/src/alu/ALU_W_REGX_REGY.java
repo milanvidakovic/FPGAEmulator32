@@ -27,8 +27,8 @@ public class ALU_W_REGX_REGY extends Instruction {
 		case MUL_W:	res = (ctx.getReg(this.dest).val & 0xffffffffL) * (ctx.getReg(this.src).val & 0xffffffffL); 
 					ctx.h.val = (int)((res & 0xffffffff00000000L) >> 32);
 					break;
-		case DIV_W: res = (ctx.getReg(this.dest).val & 0xffffffffL) / (ctx.getReg(this.src).val & 0xffffffffL); 
-					ctx.h.val = (short)((ctx.getReg(this.dest).val & 0xffffffffL) % (ctx.getReg(this.src).val & 0xffffffffL));
+		case DIV_W: res = ctx.getReg(this.dest).val / ctx.getReg(this.src).val; 
+					ctx.h.val = ctx.getReg(this.dest).val  % ctx.getReg(this.src).val ;
 					break;
 		default: throw new RuntimeException("Unsupported operation type: " + type);
 		}

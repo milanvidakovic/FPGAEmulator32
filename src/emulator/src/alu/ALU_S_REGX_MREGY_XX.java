@@ -28,8 +28,8 @@ public class ALU_S_REGX_MREGY_XX extends Instruction {
 		case MUL_S:	res = (ctx.getReg(this.dest).val & 0xffffffffL) * (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); 
 					ctx.h.val = (int)((res & 0xffffffff00000000L) >> 32);
 					break;
-		case DIV_S: res = (ctx.getReg(this.dest).val & 0xffffffffL) / (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL); 
-					ctx.h.val = (int) ((ctx.getReg(this.dest).val & 0xffffffffL) % (ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2] & 0xffffffffL));
+		case DIV_S: res = (short)(ctx.getReg(this.dest).val / ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]); 
+					ctx.h.val = (short) (ctx.getReg(this.dest).val % ctx.memory[fix(ctx.getReg(this.src).val + this.argument) / 2]);
 					break;
 		default: throw new RuntimeException("Unsupported operation type: " + type);
 		}
