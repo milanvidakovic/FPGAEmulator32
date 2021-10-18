@@ -144,8 +144,10 @@ public class CpuContext {
 	public static final int PORT_UART_TX_BUSY = 650; // port which has 1 when UART TX is busy
 	public static final int PORT_MILLIS = 690; // current number of milliseconds counted so far
 	public static final int PORT_MOUSE = 800; // byte from mouse
+	public static final int PORT_MOUSE_STRUCT_ADDR = 810; // pointer to the mouse struct in memory (x, y, key and status fields) 
 
 	public int mouseByte;
+	public int mouse_struct_addr;
 	public int fromPort(int port) {
 		switch (port) {
 		case PORT_UART_RX_BYTE:
@@ -166,6 +168,8 @@ public class CpuContext {
 				mouseByte = 256 + mouseByte;
 			System.out.println("PORT MOUSE: " + mouseByte);
 			return mouseByte << 16;
+		case PORT_MOUSE_STRUCT_ADDR:
+			return mouse_struct_addr;
 		}
 		return 0;
 	}
@@ -206,6 +210,9 @@ public class CpuContext {
 			engine.counter = (int) (System.nanoTime() >> 20);
 			this.counterTrigger = value;
 			engine.counterTrigger = (int)(System.nanoTime() >> 20) + value;
+			break;
+		case PORT_MOUSE_STRUCT_ADDR:
+			mouse_struct_addr = value;
 			break;
 		}
 	}

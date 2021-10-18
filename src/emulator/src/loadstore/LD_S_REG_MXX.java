@@ -12,7 +12,7 @@ public class LD_S_REG_MXX extends Instruction {
 
 	@Override
 	public void exec(CpuContext ctx) {
-		ctx.getReg(this.dest).val = getMemContent(ctx, this.argument / 2, this.argument);//ctx.memory[this.argument / 2] & 0xFFFF;
+		ctx.getReg(this.dest).val = getMemContentS(ctx, this.argument / 2, this.argument);//ctx.memory[this.argument / 2] & 0xFFFF;
 		ctx.pc.val += 6;
 	}
 }

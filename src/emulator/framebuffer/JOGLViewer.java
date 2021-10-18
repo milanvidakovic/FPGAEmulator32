@@ -195,10 +195,10 @@ public class JOGLViewer extends JFrame implements GLEventListener, IFBViewer {
 	private CpuContext ctx;
 
 	private void mouseIrq(short key, short x, short y, short status) {
-		ctx.memory[80 / 2] = x;
-		ctx.memory[82 / 2] = y;
-		ctx.memory[84 / 2] = key;
-		ctx.memory[86 / 2] = status;
+		ctx.memory[this.ctx.mouse_struct_addr / 2  + 0] = x;
+		ctx.memory[this.ctx.mouse_struct_addr / 2  + 1] = y;
+		ctx.memory[this.ctx.mouse_struct_addr / 2  + 2] = key;
+		ctx.memory[this.ctx.mouse_struct_addr / 2  + 3] = status;
 	}
 
 	boolean first = true;
@@ -350,7 +350,7 @@ public class JOGLViewer extends JFrame implements GLEventListener, IFBViewer {
 
 				}
 				mouseIrq(button, (short) x, (short) y, (short) 1);
-
+				//System.out.println("MOUSE MOVE " + x + ", " + y );
 				lastX = x;
 				lastY = y;
 			}

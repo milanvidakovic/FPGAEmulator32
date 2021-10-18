@@ -439,6 +439,15 @@ public class Instruction {
 			return fixInt(w1, w2);
 		}
 	}
+	
+	public int getMemContentS(CpuContext ctx, int addr, int realAddr) {
+		if ((realAddr & 0x80000000) != 0) {
+			int io = realAddr & 0x7FFFFFFF;
+			return ctx.fromPort(io);
+		} else {
+			return (short) (ctx.memory[addr]);
+		}
+	}
 
 	public void setMemContent(CpuContext ctx, int addr, short val, int realAddr) {
 		if ((realAddr & 0x80000000) != 0) {
@@ -450,8 +459,13 @@ public class Instruction {
 	}
 
 	public void setMemContent(CpuContext ctx, int addr, int val, int realAddr) {
-		ctx.memory[addr] = (short) (val >> 16);
-		ctx.memory[addr + 1] = (short) (val & 0xFFFF);
+		if ((realAddr & 0x80000000) != 0) {
+			int r = realAddr & 0x7FFFFFFF;
+			ctx.toPort(r, val);
+		} else {
+			ctx.memory[addr] = (short) (val >> 16);
+			ctx.memory[addr + 1] = (short) (val & 0xFFFF);
+		}
 	}
 
 	protected int pop(CpuContext ctx, int addr) {

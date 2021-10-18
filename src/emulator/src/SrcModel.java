@@ -49,6 +49,7 @@ import emulator.src.cmpinv.INV_W_REG;
 import emulator.src.floatingpoint.BLIT;
 import emulator.src.floatingpoint.FLOAT_REGX_REGY;
 import emulator.src.floatingpoint.INT_XX;
+import emulator.src.floatingpoint.PIX;
 import emulator.src.floatingpoint.SEX_B_REGX_REGY;
 import emulator.src.floatingpoint.SEX_S_REGX_REGY;
 import emulator.src.incdec.DEC_B_MREG_XX;
@@ -632,6 +633,8 @@ public class SrcModel extends AbstractTableModel {
 				return new SEX_S_REGX_REGY(memory, addr, src, dest);
 			case 8:
 				return new BLIT(memory, addr, src, dest);
+			case 9:
+				return new PIX(memory, addr, src, dest);
 			case 15:
 				return new INT_XX(memory, addr, src, dest);
 			}
