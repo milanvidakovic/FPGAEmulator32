@@ -820,4 +820,9 @@ public class FBViewer extends JFrame implements IFBViewer {
 		return this;
 	}
 
+	@Override
+	public int getMode() {
+		return this.mode;
+	}
+
 }

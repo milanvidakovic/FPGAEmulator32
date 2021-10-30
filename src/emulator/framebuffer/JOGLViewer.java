@@ -1057,4 +1057,9 @@ public class JOGLViewer extends JFrame implements GLEventListener, IFBViewer {
 		return this;
 	}
 
+	@Override
+	public int getMode() {
+		return this.mode;
+	}
+
 }

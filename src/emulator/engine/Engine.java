@@ -327,7 +327,11 @@ public class Engine {
 	public void setSfViewer(MemViewer sfViewer) {
 		this.sfViewer = sfViewer;
 	}
-
+	
+	public IFBViewer getFBViewer() {
+		return this.fbViewer;
+	}
+	
 	public void setFBViewer(IFBViewer fbViewer) {
 		this.fbViewer = fbViewer;
 	}
