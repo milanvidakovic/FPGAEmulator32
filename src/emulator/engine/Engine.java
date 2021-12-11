@@ -327,11 +327,7 @@ public class Engine {
 	public void setSfViewer(MemViewer sfViewer) {
 		this.sfViewer = sfViewer;
 	}
-	
-	public IFBViewer getFBViewer() {
-		return this.fbViewer;
-	}
-	
+
 	public void setFBViewer(IFBViewer fbViewer) {
 		this.fbViewer = fbViewer;
 	}
@@ -382,6 +378,10 @@ public class Engine {
 		ctx.pc.val = startAddr;
 		Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];
 		refreshUI(i);
+	}
+
+	public IFBViewer getFBViewer() {
+		return this.fbViewer;
 	}
 
 }

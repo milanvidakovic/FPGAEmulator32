@@ -933,9 +933,9 @@ public class JOGLViewer extends JFrame implements GLEventListener, IFBViewer {
 				return Color.black;
 		case 1:
 			if (this.inverse)
-				return new Color(0, 255, 255);
+				return new Color(255, 255, 0);
 			else
-				return Color.red;
+				return Color.blue;
 		case 2:
 			if (this.inverse)
 				return new Color(255, 0, 255);
@@ -943,14 +943,14 @@ public class JOGLViewer extends JFrame implements GLEventListener, IFBViewer {
 				return Color.green;
 		case 3:
 			if (this.inverse)
-				return new Color(0, 0, 255);
-			else
 				return new Color(255, 255, 0);
+			else
+				return new Color(0, 255, 255);
 		case 4:
 			if (this.inverse)
-				return new Color(255, 255, 0);
+				return new Color(0, 255, 255);
 			else
-				return Color.blue;
+				return Color.red;
 		case 5:
 			if (this.inverse)
 				return new Color(0, 255, 0);
@@ -958,9 +958,9 @@ public class JOGLViewer extends JFrame implements GLEventListener, IFBViewer {
 				return new Color(255, 0, 255);
 		case 6:
 			if (this.inverse)
-				return new Color(255, 0, 0);
+				return new Color(0, 0, 255);
 			else
-				return new Color(0, 255, 255);
+				return new Color(255, 255, 0);
 		case 7:
 			if (this.inverse)
 				return Color.black;

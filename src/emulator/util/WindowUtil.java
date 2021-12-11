@@ -32,7 +32,7 @@ public class WindowUtil {
 		if (GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length > 1)
 			frame.setBounds(x, y, w, h);
 		else
-		frame.setBounds((int) (x / wd.getDefaultScaleX()), (int) (y / wd.getDefaultScaleY()),
+			frame.setBounds((int) (x / wd.getDefaultScaleX()), (int) (y / wd.getDefaultScaleY()),
 				(int) (w / wd.getDefaultScaleX()), (int) (h / wd.getDefaultScaleY()));
 	}
 	

@@ -193,7 +193,8 @@ public class EmulatorMain extends JFrame {
 		btnStepOver.setToolTipText("F10");
 		btnStepOver.addActionListener(e -> {
 			try {
-				eng.stepOver();
+				if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JButton)
+					eng.stepOver();
 			} catch (NotImplementedException e1) {
 				e1.printStackTrace();
 			}
@@ -203,7 +204,8 @@ public class EmulatorMain extends JFrame {
 		btnStepInto.setToolTipText("F11");
 		btnStepInto.addActionListener(e -> {
 			try {
-				eng.stepInto();
+				if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JButton)
+					eng.stepInto();
 			} catch (NotImplementedException e1) {
 				e1.printStackTrace();
 			}
