@@ -6,6 +6,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GridLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -30,13 +31,13 @@ import javax.swing.filechooser.FileFilter;
 
 import emulator.engine.CpuContext;
 import emulator.engine.Engine;
-import emulator.framebuffer.JOGLViewer;
+import emulator.framebuffer.IFBViewer;
+import emulator.framebuffer.LwjglViewer;
 import emulator.memviewer.MemViewer;
 import emulator.src.Instruction;
 import emulator.src.NotImplementedException;
 import emulator.src.SrcModel;
 import emulator.util.IniFile;
-import emulator.util.MyFileChooser;
 import emulator.util.WindowUtil;
 
 public class EmulatorMain extends JFrame {
@@ -44,7 +45,7 @@ public class EmulatorMain extends JFrame {
 
 	public static boolean DEBUG = false;
 
-	final MyFileChooser fc;
+	final JFileChooser fc;
 
 	public JButton btnLoad = new JButton("Load");
 	public JButton btnLoadPrg = new JButton("Load prg");
@@ -81,7 +82,7 @@ public class EmulatorMain extends JFrame {
 	 */
 	public MemViewer sfViewer;
 
-	public JOGLViewer fbViewer;
+	public IFBViewer fbViewer;
 
 	public MouseListener popupListener;
 
@@ -94,7 +95,7 @@ public class EmulatorMain extends JFrame {
 
 	public EmulatorMain(GraphicsConfiguration conf, IniFile ini) {
 		super(conf);
-		fc = new MyFileChooser();
+		fc = new JFileChooser();
 		this.ini = ini;
 		JPanel registers = new JPanel();
 		registers.setLayout(new GridLayout(3, 4));
@@ -175,9 +176,11 @@ public class EmulatorMain extends JFrame {
 		chbDebug.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (chbDebug.isSelected())
+				if (chbDebug.isSelected()) {
 					EmulatorMain.DEBUG = true;
-				else
+					Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];
+					eng.refreshUI(i);
+				} else
 					EmulatorMain.DEBUG = false;
 			}
 		});
@@ -193,7 +196,7 @@ public class EmulatorMain extends JFrame {
 		btnStepOver.setToolTipText("F10");
 		btnStepOver.addActionListener(e -> {
 			try {
-				if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JButton)
+				//if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JButton)
 					eng.stepOver();
 			} catch (NotImplementedException e1) {
 				e1.printStackTrace();
@@ -204,7 +207,7 @@ public class EmulatorMain extends JFrame {
 		btnStepInto.setToolTipText("F11");
 		btnStepInto.addActionListener(e -> {
 			try {
-				if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JButton)
+				//if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JButton)
 					eng.stepInto();
 			} catch (NotImplementedException e1) {
 				e1.printStackTrace();
@@ -346,7 +349,15 @@ public class EmulatorMain extends JFrame {
 			WindowUtil.saveIni(sfViewer, "SfViewer", ini);
 		}
 		if (fbViewer != null) {
-			WindowUtil.saveIni(fbViewer.getFrame(), "FB", ini);
+			if (fbViewer instanceof LwjglViewer) {
+				fbViewer.getFrame();
+				ini.setInt("FB", "width", ((LwjglViewer) fbViewer).width);
+				ini.setInt("FB", "height", ((LwjglViewer) fbViewer).height);
+				ini.setInt("FB", "x", ((LwjglViewer) fbViewer).x);
+				ini.setInt("FB", "y", ((LwjglViewer) fbViewer).y);
+			} else {
+				WindowUtil.saveIni(fbViewer.getFrame(), "FB", ini);
+			}
 		}
 		WindowUtil.saveIni(this, "general", ini);
 		ini.setInt("general", "debug", DEBUG ? 1 : 0);
@@ -404,7 +415,11 @@ public class EmulatorMain extends JFrame {
 			}
 			String fbDisplayId = ini.getString("FB", "display", "\\Display0");
 			GraphicsConfiguration fbConf = WindowUtil.getGraphicsConfiguration(fbDisplayId);
-			fbViewer = new JOGLViewer(fbConf, ctx, eng);
+			Rectangle r = new Rectangle(ctx.engine.main.ini.getInt("FB", "x", 1024), ctx.engine.main.ini.getInt("FB", "y", 100),
+					ctx.engine.main.ini.getInt("FB", "width", 640), ctx.engine.main.ini.getInt("FB", "height", 480));
+
+//			fbViewer = new JOGLViewer(fbConf, ctx, eng);
+			fbViewer = new LwjglViewer(fbConf, ctx, eng, r);
 
 			eng.setMemViewer(memViewer);
 			eng.setSfViewer(sfViewer);

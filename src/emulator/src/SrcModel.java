@@ -169,7 +169,7 @@ public class SrcModel extends AbstractTableModel {
 	
 	public void parse(byte[] buffer, int startAddr, int len) {
 		int t, t1, t2;
-		for (int i = 0; i < len; i++) {
+		for (int i = 0; i < len/2; i++) {
 			t1 = buffer[i * 2];
 			if (t1 < 0) {
 				t1 = 256 + t1;
@@ -208,8 +208,9 @@ public class SrcModel extends AbstractTableModel {
 		addr_instr[instr.addr] = instr;
 	}
 	
-	public void disassm(int addr) {
+	public void disassm(int addr, int len) {
 		boolean finished = false;
+		int old_addr = addr;
 		while (!finished) {
 			Instruction instr = getInstruction(memory, addr);
 			addr += 2;
@@ -221,11 +222,14 @@ public class SrcModel extends AbstractTableModel {
 			}
 			if (addr == Engine.MEM_SIZE)
 				finished = true;
+			if (addr - old_addr > len)
+				finished = true;
 			addr_instr[instr.addr] = instr;
 		}
+		System.out.println("Disassm finished at: " + addr);
 	}
 	public void disassm() {
-		disassm(0);
+		disassm(0, 200000);
 	}
 
 	public Instruction getInstruction(short[] memory, int addr) {

@@ -227,7 +227,7 @@ public class CpuContext {
 			in.read(buffer);
 
 			this.mdl.parse(buffer, 197632/2, (int) f.length());
-			this.mdl.disassm(197632);
+			this.mdl.disassm(197632, (int)f.length());
 
 			in.close();
 		} catch (FileNotFoundException e) {
