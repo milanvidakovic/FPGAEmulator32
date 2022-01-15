@@ -38,6 +38,7 @@ import emulator.src.Instruction;
 import emulator.src.NotImplementedException;
 import emulator.src.SrcModel;
 import emulator.util.IniFile;
+import emulator.util.MyFileChooser;
 import emulator.util.WindowUtil;
 
 public class EmulatorMain extends JFrame {
@@ -45,7 +46,7 @@ public class EmulatorMain extends JFrame {
 
 	public static boolean DEBUG = false;
 
-	final JFileChooser fc;
+	final MyFileChooser fc;
 
 	public JButton btnLoad = new JButton("Load");
 	public JButton btnLoadPrg = new JButton("Load prg");
@@ -95,7 +96,7 @@ public class EmulatorMain extends JFrame {
 
 	public EmulatorMain(GraphicsConfiguration conf, IniFile ini) {
 		super(conf);
-		fc = new JFileChooser();
+		fc = new MyFileChooser();
 		this.ini = ini;
 		JPanel registers = new JPanel();
 		registers.setLayout(new GridLayout(3, 4));
@@ -178,6 +179,7 @@ public class EmulatorMain extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				if (chbDebug.isSelected()) {
 					EmulatorMain.DEBUG = true;
+					@SuppressWarnings("static-access")
 					Instruction i = ctx.mdl.addr_instr[Instruction.fix(ctx.pc.val)];
 					eng.refreshUI(i);
 				} else

@@ -881,7 +881,8 @@ public class JOGLViewer extends JFrame implements GLEventListener, IFBViewer {
 		}
 	}
 
-	private Color getColor(int col) {
+	@Override
+	public Color getColor(int col) {
 		int c = col & 15;
 		switch (c) {
 		case 0:

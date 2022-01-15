@@ -12,13 +12,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
 import static org.lwjgl.glfw.GLFW.GLFW_VERSION_UNAVAILABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowAspectRatio;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowPos;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
+import static org.lwjgl.glfw.GLFW.glfwGetWindowPos;
+import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
@@ -28,8 +28,8 @@ import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowAspectRatio;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
@@ -441,7 +441,8 @@ public class LwjglViewer implements IFBViewer {
 		}
 	}
 
-	private Color getColor(int col) {
+	@Override
+	public Color getColor(int col) {
 		int c = col & 15;
 		switch (c) {
 		case 0:
@@ -1043,7 +1044,51 @@ public class LwjglViewer implements IFBViewer {
 			glfwSwapBuffers(window);
 		}
 	}
-
+	
+	private boolean between(int x1, int x2) {
+		return Math.abs(x1 - x2) <= 15;
+	}
+	
+	class Overlap {
+		int x1, y1;
+		int w1, h1;
+		int x2, y2;
+		int w2, h2;
+	}
+	private Overlap getOverlap(int i, int j) {
+		if (spriteDef[i].spriteAddr > 0 && spriteDef[j].spriteAddr > 0) {
+			int x1 = spriteDef[i].x, x2 = spriteDef[j].x;
+			int y1 = spriteDef[i].y, y2 = spriteDef[j].y;
+			if (between(x1, x2) && between(y1, y2)) {
+				Overlap retVal = new Overlap();
+				if (x1 <= x2) {
+					retVal.x1 = x2 - x1;
+					retVal.x2 = 0;
+					retVal.w1 = 16 - retVal.x1;
+					retVal.w2 = retVal.w1;
+				} else {
+					retVal.x1 = 0;
+					retVal.x2 = x1 - x2;
+					retVal.w2 = 16 - retVal.x2;
+					retVal.w1 = retVal.w2;
+				}
+				if (y1 <= y2) {
+					retVal.y1 = y2 - y1;
+					retVal.y2 = 0;
+					retVal.h1 = 16 - retVal.y1;
+					retVal.h2 = retVal.h1;
+				} else {
+					retVal.y1 = 0;
+					retVal.y2 = y1 - y2;
+					retVal.h2 = 16 - retVal.y2;
+					retVal.h1 = retVal.h2;
+				}
+				return retVal;
+			}
+		}
+		return null;
+	}
+	
 	private void render() {
 		// copy the framebuffer to the actual buffer to be drawn
 		pixelframebuffer.position(0);
@@ -1054,14 +1099,33 @@ public class LwjglViewer implements IFBViewer {
 		
 		// copy the sprite data into the actual buffer to be drawn
 		if (this.mode == GRAPHICS_MODE_320_240) {
-			for (int i = 0; i < SPRITE_COUNT; i++) {
+			for (int i = SPRITE_COUNT - 1; i >= 0; i--) {
 				if (ctx.memory[(SPRITE_DEF_START + i * 8) / 2] != 0) {
 					spriteDef[i].spriteAddr = Instruction.fix(ctx.memory[(SPRITE_DEF_START + i * 8) / 2]);
 					spriteDef[i].x = ctx.memory[(SPRITE_DEF_START + i * 8 + 2) / 2];
 					spriteDef[i].y = ctx.memory[(SPRITE_DEF_START + i * 8 + 4) / 2];
 					spriteDef[i].transparentColor = getColor(ctx.memory[(SPRITE_DEF_START + i * 8 + 6) / 2]);
-					fillSprite(pixelframebuffer, spriteDef[i], ctx, spriteDef[i].x, spriteDef[i].y);
-					// }
+					//fillSprite(pixelframebuffer, spriteDef[i], ctx);
+					spriteDef[i].fillBuff(ctx, this);
+				}
+			}
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			for (int i = 0; i < SPRITE_COUNT; i++) {
+				for (int j = i+2; j < SPRITE_COUNT; j++) {
+					Overlap overlap = getOverlap(i, j);
+					if (overlap != null) {
+						for (int i1 = overlap.x2; i1 < overlap.x2 + overlap.w2; i1++) {
+							for (int j1 = overlap.y2; j1 < overlap.y2 + overlap.h2; j1++) {
+								spriteDef[j].buff[i1][j1] = spriteDef[i].transparentColor;
+							}
+						}
+					}
+				}
+			}
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			for (int i = SPRITE_COUNT - 1; i >= 0; i--) {
+				if (ctx.memory[(SPRITE_DEF_START + i * 8) / 2] != 0) {
+					putSprite(pixelframebuffer, spriteDef[i]);
 				}
 			}
 		}
@@ -1083,10 +1147,36 @@ public class LwjglViewer implements IFBViewer {
 		glUseProgram(0);
 	}
 
-	protected void fillSprite(ByteBuffer buff, SpriteDef sp, CpuContext ctx, int x, int y) {
+	private void putSprite(ByteBuffer buff, SpriteDef sp) {
+		if (sp.spriteAddr > 0) {
+			Color[] pixels = new Color[4];
+			int lineBytes = 640*3 * scale;
+			int faddr = (479 - sp.y * 2) * lineBytes + (sp.x * 2) * 3;
+			for (int i = 0; i < 16; i++) {
+				for (int j = 0; j < 4; j++) {
+					pixels[0] = sp.buff[j*4 + 0][i];
+					pixels[1] = sp.buff[j*4 + 1][i];
+					pixels[2] = sp.buff[j*4 + 2][i];
+					pixels[3] = sp.buff[j*4 + 3][i];
+					for (int k = 0; k < 4; k++) {
+						int faddr2 = faddr - (i * 2 * lineBytes) + j * 12 * 2 + k * 6;
+						if (!pixels[k].equals(sp.transparentColor)) {
+							// non-transparent color
+							putPixel(buff, faddr2 + 0, pixels[k]);
+							putPixel(buff, faddr2 + 3, pixels[k]);
+							putPixel(buff, faddr2 - lineBytes + 0, pixels[k]);
+							putPixel(buff, faddr2 - lineBytes + 3, pixels[k]);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	protected void fillSprite(ByteBuffer buff, SpriteDef sp, CpuContext ctx) {
 		Color[] pixels = new Color[4];
 		int lineBytes = 640*3 * scale;
-		int faddr = (479 - y * 2) * lineBytes + (x * 2) * 3;
+		int faddr = (479 - sp.y * 2) * lineBytes + (sp.x * 2) * 3;
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 4; j++) {
 				int addr = sp.spriteAddr + i * 8 + j * 2;
@@ -1098,6 +1188,7 @@ public class LwjglViewer implements IFBViewer {
 				for (int k = 0; k < 4; k++) {
 					int faddr2 = faddr - (i * 2 * lineBytes) + j * 12 * 2 + k * 6;
 					if (!pixels[k].equals(sp.transparentColor)) {
+						// non-transparent color
 						putPixel(buff, faddr2 + 0, pixels[k]);
 						putPixel(buff, faddr2 + 3, pixels[k]);
 						putPixel(buff, faddr2 - lineBytes + 0, pixels[k]);

@@ -27,12 +27,12 @@ public class WindowUtil {
 //		r.x *= wd.getDefaultScaleX();
 //		r.y *= wd.getDefaultScaleY();
 //		
-		if (outside(x, width, r.x, r.width)) {
+		if (outside(x, width, (int)(r.x * scaleX), (int)(r.width*scaleX))) {
 			// if x coordinate of the frame goes beyond its own display
 			// we will reset it
 			x = r2.x + 10;
 		}
-		if (outside(y, height, r.y, r.height)) {
+		if (outside(y, height, (int)(r.y * scaleY), (int)(r.height*scaleY))) {
 			// if y coordinate of the frame goes beyond its own display
 			// we will reset it
 			y = r2.y + 10;
@@ -54,8 +54,8 @@ public class WindowUtil {
 //		} else {
 //			rx1 = rx;
 //			rx2 = rx + rw;
-//		}
-		if (x < rx || x > (rx + rw))
+//		} 
+		if (x < rx ||  x > (rx + rw))
 			return true;
 		return false;
 	}

@@ -747,8 +747,8 @@ public class FBViewer extends JFrame implements IFBViewer {
 			return Color.black;
 		}
 	}
-
-	private Color getColor(short col) {
+	@Override
+	public Color getColor(int col) {
 		int c = col & 7;
 		switch (c) {
 		case 0:

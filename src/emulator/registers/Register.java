@@ -29,6 +29,7 @@ public class Register extends JLabel {
 					} else {
 						Register.this.val = Integer.parseInt(v);
 					}
+					@SuppressWarnings("static-access")
 					Instruction i = ctx.mdl.addr_instr[ctx.pc.val];
 					ctx.engine.refreshUI(i);
 				}

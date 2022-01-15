@@ -1,12 +1,14 @@
 package emulator.framebuffer;
 
+import java.awt.Color;
+
 import javax.swing.JFrame;
 
 public interface IFBViewer {
 	public static final int TEXT_MODE = 0;
 	public static final int GRAPHICS_MODE_320_240 = 1;
 	public static final int GRAPHICS_MODE_640_480 = 2;
-	public static final int SPRITE_COUNT = 4;
+	public static final int SPRITE_COUNT = 5;
 	public static final int SPRITE_DEF_START = 128;
 	
 	/** Font 8x8, used in the text mode. */
@@ -152,4 +154,5 @@ public interface IFBViewer {
 	public JFrame getFrame();
 	public int getMode();
 	public void dispose();
+	public Color getColor(int col);
 }
