@@ -797,7 +797,7 @@ public class LwjglViewer implements IFBViewer {
 		} else if (keyCode == 45 && scanCode == 12) {
 			return 45; // - top row, left to the =
 		}
-
+		
 		if (keyCode == 340 && scanCode == 42) {
 //		case KeyEvent.VK_LEFT_SHIFT		:		return 501  ;
 			return 501;
@@ -901,10 +901,10 @@ public class LwjglViewer implements IFBViewer {
 			return 87;
 		case KeyEvent.VK_X:
 			return 88;
-		case KeyEvent.VK_Y:
-			return 89;
 		case KeyEvent.VK_Z:
 			return 90;
+		case KeyEvent.VK_Y:
+			return 89;
 
 		case KeyEvent.VK_BACK_QUOTE://$$
 			return 96;
