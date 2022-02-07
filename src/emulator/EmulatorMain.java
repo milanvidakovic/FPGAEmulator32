@@ -48,6 +48,7 @@ public class EmulatorMain extends JFrame {
 
 	final MyFileChooser fc;
 
+	public JButton btnReload = new JButton("Reload");
 	public JButton btnLoad = new JButton("Load");
 	public JButton btnLoadPrg = new JButton("Load prg");
 	public JButton btnGotoStart = new JButton("");
@@ -160,6 +161,8 @@ public class EmulatorMain extends JFrame {
 
 		JPanel commands = new JPanel();
 		commands.add(btnGotoStart);
+		commands.add(btnReload);
+		btnReload.addActionListener(e -> loadProgram());
 		commands.add(btnLoad);
 		btnLoad.addActionListener(e -> loadProg());
 		btnLoadPrg.addActionListener(e -> loadExternalProgram());
@@ -285,6 +288,11 @@ public class EmulatorMain extends JFrame {
 		setVisible(true);
 	}
 
+	private Object reload() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	/**
 	 * Loading external program into the memory.
 	 */
@@ -389,61 +397,65 @@ public class EmulatorMain extends JFrame {
 		int returnVal = fc.showOpenDialog(this);
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			if (eng != null)
-				eng.halt();
-			setCursor(new Cursor(Cursor.WAIT_CURSOR));
-			File file = fc.getSelectedFile();
-			ctx.load(file.getAbsolutePath());
-			setTitle(file.getName());
-			ini.setString("general", "startDir", file.getAbsolutePath());
-			ini.saveINI();
-			eng = new Engine(ctx, this);
-			if (memViewer != null) {
-				memViewer.dispose();
-			}
-			String memDisplayId = ini.getString("MemViewer", "display", "\\Display0");
-			GraphicsConfiguration memConf = WindowUtil.getGraphicsConfiguration(memDisplayId);
-			memViewer = new MemViewer(memConf, ctx, eng, "MemViewer");
+			loadProgram();
+		}
+	}
 
-			if (sfViewer != null) {
-				sfViewer.dispose();
-			}
-			String sfDisplayId = ini.getString("SfViewer", "display", "\\Display0");
-			GraphicsConfiguration sfConf = WindowUtil.getGraphicsConfiguration(sfDisplayId);
-			sfViewer = new MemViewer(sfConf, ctx, eng, "SfViewer");
+	private void loadProgram() {
+		setCursor(new Cursor(Cursor.WAIT_CURSOR));
+		if (eng != null)
+			eng.halt();
+		File file = fc.getSelectedFile();
+		ctx.load(file.getAbsolutePath());
+		setTitle(file.getName());
+		ini.setString("general", "startDir", file.getAbsolutePath());
+		ini.saveINI();
+		eng = new Engine(ctx, this);
+		if (memViewer != null) {
+			memViewer.dispose();
+		}
+		String memDisplayId = ini.getString("MemViewer", "display", "\\Display0");
+		GraphicsConfiguration memConf = WindowUtil.getGraphicsConfiguration(memDisplayId);
+		memViewer = new MemViewer(memConf, ctx, eng, "MemViewer");
 
-			if (fbViewer != null) {
-				fbViewer.dispose();
-			}
-			String fbDisplayId = ini.getString("FB", "display", "\\Display0");
-			GraphicsConfiguration fbConf = WindowUtil.getGraphicsConfiguration(fbDisplayId);
-			Rectangle r = new Rectangle(ctx.engine.main.ini.getInt("FB", "x", 1024), ctx.engine.main.ini.getInt("FB", "y", 100),
-					ctx.engine.main.ini.getInt("FB", "width", 640), ctx.engine.main.ini.getInt("FB", "height", 480));
+		if (sfViewer != null) {
+			sfViewer.dispose();
+		}
+		String sfDisplayId = ini.getString("SfViewer", "display", "\\Display0");
+		GraphicsConfiguration sfConf = WindowUtil.getGraphicsConfiguration(sfDisplayId);
+		sfViewer = new MemViewer(sfConf, ctx, eng, "SfViewer");
+
+		if (fbViewer != null) {
+			fbViewer.dispose();
+		}
+		String fbDisplayId = ini.getString("FB", "display", "\\Display0");
+		GraphicsConfiguration fbConf = WindowUtil.getGraphicsConfiguration(fbDisplayId);
+		Rectangle r = new Rectangle(ctx.engine.main.ini.getInt("FB", "x", 1024), ctx.engine.main.ini.getInt("FB", "y", 100),
+				ctx.engine.main.ini.getInt("FB", "width", 640), ctx.engine.main.ini.getInt("FB", "height", 480));
 
 //			fbViewer = new JOGLViewer(fbConf, ctx, eng);
-			fbViewer = new LwjglViewer(fbConf, ctx, eng, r);
+		fbViewer = new LwjglViewer(fbConf, ctx, eng, r);
 
-			eng.setMemViewer(memViewer);
-			eng.setSfViewer(sfViewer);
-			eng.setFBViewer(fbViewer);
+		eng.setMemViewer(memViewer);
+		eng.setSfViewer(sfViewer);
+		eng.setFBViewer(fbViewer);
 
-			src.remove(tblSrc);
-			tblSrc = new JTable(ctx.mdl);
-			src.getViewport().add(tblSrc);
-			src.revalidate();
-			src.repaint();
-			tblSrc.setRowSelectionInterval(0, 0);
-			tblSrc.addMouseListener(popupListener);
+		src.remove(tblSrc);
+		tblSrc = new JTable(ctx.mdl);
+		src.getViewport().add(tblSrc);
+		src.revalidate();
+		src.repaint();
+		tblSrc.setRowSelectionInterval(0, 0);
+		tblSrc.addMouseListener(popupListener);
 
-			btnGotoStart.setEnabled(true);
-			btnRun.setEnabled(true);
-			btnStepOver.setEnabled(true);
-			btnStepInto.setEnabled(true);
-			btnReset.setEnabled(true);
-			btnStop.setEnabled(true);
-			eng.gotoAddr(startAddr);
-			setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-		}
+		btnGotoStart.setEnabled(true);
+		btnRun.setEnabled(true);
+		btnStepOver.setEnabled(true);
+		btnStepInto.setEnabled(true);
+		btnReset.setEnabled(true);
+		btnStop.setEnabled(true);
+		eng.gotoAddr(startAddr);
+		setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	}
 
 	class PopupListener extends MouseAdapter {
