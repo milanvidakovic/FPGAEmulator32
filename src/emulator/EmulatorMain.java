@@ -162,6 +162,7 @@ public class EmulatorMain extends JFrame {
 		JPanel commands = new JPanel();
 		commands.add(btnGotoStart);
 		commands.add(btnReload);
+		btnReload.setEnabled(false);
 		btnReload.addActionListener(e -> loadProgram());
 		commands.add(btnLoad);
 		btnLoad.addActionListener(e -> loadProg());
@@ -402,10 +403,11 @@ public class EmulatorMain extends JFrame {
 	}
 
 	private void loadProgram() {
+		File file = fc.getSelectedFile();
+		if (file == null) return;
 		setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		if (eng != null)
 			eng.halt();
-		File file = fc.getSelectedFile();
 		ctx.load(file.getAbsolutePath());
 		setTitle(file.getName());
 		ini.setString("general", "startDir", file.getAbsolutePath());
@@ -448,6 +450,7 @@ public class EmulatorMain extends JFrame {
 		tblSrc.setRowSelectionInterval(0, 0);
 		tblSrc.addMouseListener(popupListener);
 
+		btnReload.setEnabled(true);
 		btnGotoStart.setEnabled(true);
 		btnRun.setEnabled(true);
 		btnStepOver.setEnabled(true);

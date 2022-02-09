@@ -83,6 +83,7 @@ import java.nio.IntBuffer;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
@@ -588,8 +589,13 @@ public class LwjglViewer implements IFBViewer {
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-		window = glfwCreateWindow(width, height, "FBViewer", NULL, NULL);
+		try {
+			if (width == 0) width = 100;
+			if (height == 0) height = 100;
+			window = glfwCreateWindow(width, height, "FBViewer", NULL, NULL);
+		} catch (Exception ex) {
+			JOptionPane.showConfirmDialog(null, "Framebuffer window failed to open. Cause: " + ex.getMessage());
+		}
 		if (window == NULL) {
 			throw new AssertionError("Failed to create the GLFW window");
 		}
