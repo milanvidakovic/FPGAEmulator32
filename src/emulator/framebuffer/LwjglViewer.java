@@ -216,7 +216,7 @@ public class LwjglViewer implements IFBViewer {
 				int c = 127 - (int) (content & 0xff);
 				int lineBytes = 640 * 3 * scale;
 				int offset = (59 - row) * 8 * lineBytes + (col) * 8 * 3;
-
+				if ((c < 0) || (c > 127)) return;
 				for (int i = 0; i < 8; i++) {
 					for (int j = 0; j < 8; j++) {
 						if ((font_8x8[c * 8 + i] & (1 << j)) != 0) {

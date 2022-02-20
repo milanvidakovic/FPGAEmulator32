@@ -207,9 +207,9 @@ public class CpuContext {
 			}
 			break;
 		case PORT_TIMER:
-			engine.counter = (int) (System.nanoTime() >> 20);
+			engine.counter = 0;
 			this.counterTrigger = value;
-			engine.counterTrigger = (int)(System.nanoTime() >> 20) + value;
+			engine.counterTrigger = value;
 			break;
 		case PORT_MOUSE_STRUCT_ADDR:
 			mouse_struct_addr = value;
