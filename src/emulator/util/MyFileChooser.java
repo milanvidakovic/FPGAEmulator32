@@ -3,6 +3,7 @@ package emulator.util;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 
 import javax.swing.JDialog;
@@ -18,15 +19,17 @@ public class MyFileChooser extends JFileChooser {
             throws HeadlessException {
         JDialog dlg = super.createDialog(parent);
         GraphicsConfiguration conf = parent.getGraphicsConfiguration();
-		GraphicsDevice gd = conf.getDevice();
-		sun.awt.Win32GraphicsDevice wd = (sun.awt.Win32GraphicsDevice)gd;
+		GraphicsDevice device = conf.getDevice();
+		double scale = device.getDisplayMode().getWidth() / (double) device.getDefaultConfiguration().getBounds().width;
         //dlg.setBounds(100, 100, 800, 600); 
 
+		if (GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length == 1)
+			scale = 1;
 		
-        dlg.setBounds((int)(parent.getX() * wd.getDefaultScaleX()) + 50, 
-        		(int)(parent.getY() * wd.getDefaultScaleY()) + 50, 
-        		(int)(parent.getWidth() * wd.getDefaultScaleX()) / 2, 
-        		(int)(parent.getHeight() * wd.getDefaultScaleY()) / 2);
+        dlg.setBounds((int)(parent.getX() * scale) + 50, 
+        		(int)(parent.getY() * scale) + 50, 
+        		(int)(parent.getWidth() * scale) / 2, 
+        		(int)(parent.getHeight() * scale) / 2);
       
         return dlg;
     }
