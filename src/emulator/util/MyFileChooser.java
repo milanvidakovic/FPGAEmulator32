@@ -18,18 +18,21 @@ public class MyFileChooser extends JFileChooser {
     protected JDialog createDialog(Component parent)
             throws HeadlessException {
         JDialog dlg = super.createDialog(parent);
-        GraphicsConfiguration conf = parent.getGraphicsConfiguration();
-		GraphicsDevice device = conf.getDevice();
-		double scale = device.getDisplayMode().getWidth() / (double) device.getDefaultConfiguration().getBounds().width;
-        //dlg.setBounds(100, 100, 800, 600); 
+        
+//        GraphicsConfiguration conf = parent.getGraphicsConfiguration();
+//		GraphicsDevice device = conf.getDevice();
+//		double _scale = device.getDisplayMode().getWidth() / (double) device.getDefaultConfiguration().getBounds().width;
+//        dlg.setBounds(100, 100, 800, 600);
+        
+        double scale = 1;//WindowUtil.getMainWindowScale();
 
-		if (GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length == 1)
-			scale = 1;
+//		if (GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length == 1)
+//			scale = 1;
 		
         dlg.setBounds((int)(parent.getX() * scale) + 50, 
         		(int)(parent.getY() * scale) + 50, 
-        		(int)(parent.getWidth() * scale) / 2, 
-        		(int)(parent.getHeight() * scale) / 2);
+        		(int)(parent.getWidth() / 2), 
+        		(int)(parent.getHeight() / 2));
       
         return dlg;
     }

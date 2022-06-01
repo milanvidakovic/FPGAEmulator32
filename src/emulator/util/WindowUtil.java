@@ -15,19 +15,8 @@ public class WindowUtil {
 		GraphicsConfiguration conf = frame.getGraphicsConfiguration();
 		Rectangle r = conf.getBounds();
 		Rectangle r2 = WindowUtil.getBounds(frame);
-//		GraphicsDevice gd = conf.getDevice();
-//		
-//		if (outside(x, width, (int)(r.x * scale), (int)(r.width*scale))) {
-			// if x coordinate of the frame goes beyond its own display
-			// we will reset it
-//			x = r2.x + 10;
-//		}
-//		if (outside(y, height, (int)(r.y * scale), (int)(r.height*scale))) {
-			// if y coordinate of the frame goes beyond its own display
-			// we will reset it
-//			y = r2.y + 10;
-//		}
-		double scale = getWindowScale(frame);
+
+		double scale = getMainWindowScale();
 		if (GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length > 1) {
 			if (outside(x, width, (int)(r.x * scale), (int)(r.width*scale))) {
 				 // if x coordinate of the frame goes beyond its own display
@@ -39,7 +28,7 @@ public class WindowUtil {
 				 // we will reset it
 				y = r2.y + 10;
 			}
-			frame.setBounds(x, y, width, height);
+			frame.setBounds((int)(x/scale), (int)(y/scale), (int)(width/scale), (int)(height/scale));
 		} else {
 			if (outside((int)(x/scale), width, (int)(r.x ), (int)(r.width))) {
 				 // if x coordinate of the frame goes beyond its own display
@@ -86,6 +75,7 @@ public class WindowUtil {
 		GraphicsConfiguration conf = frame.getGraphicsConfiguration();
 		Rectangle r = conf.getBounds();
 		double _scale = getWindowScale(frame);
+		//_scale = 2.25;
 		r.x = (int) (frame.getX() * _scale);
 		r.y = (int) (frame.getY() * _scale);
 		r.width = (int) (frame.getWidth() * _scale);
@@ -100,6 +90,20 @@ public class WindowUtil {
 		ini.setInt(section, "x", r.x);
 		ini.setInt(section, "y", r.y);
 		ini.setString(section, "display", WindowUtil.getDisplayId(frame));
+	}
+	
+	public static double getMainWindowScale() {
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice[] gds = ge.getScreenDevices();
+		for (int j = 0; j < gds.length; j++) {
+			GraphicsDevice gd = gds[j];
+			Rectangle r = gd.getDefaultConfiguration().getBounds();
+			if (r.x == 0) {
+				// we have found the main window
+				return gd.getDisplayMode().getWidth() / (double) gd.getDefaultConfiguration().getBounds().width;
+			}
+		}
+		return 1;
 	}
 	
 	private static GraphicsDevice getWindowDevice2(Window window) {
