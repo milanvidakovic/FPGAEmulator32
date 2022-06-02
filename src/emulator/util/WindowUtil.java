@@ -17,6 +17,12 @@ public class WindowUtil {
 		Rectangle r2 = WindowUtil.getBounds(frame);
 
 		double scale = getMainWindowScale();
+		double scaleCurrent = getWindowScale(frame);
+		
+		if (scale == 1 && scaleCurrent > 1) {
+			scale = scaleCurrent;
+		}
+		
 		if (GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length > 1) {
 			if (outside(x, width, (int)(r.x * scale), (int)(r.width*scale))) {
 				 // if x coordinate of the frame goes beyond its own display
